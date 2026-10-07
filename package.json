@@ -1,0 +1,36 @@
+{
+  "name": "frontend-kost-rumah-ku",
+  "version": "0.1",
+  "description": "web fe",
+  "type": "module",
+  "main": "script.js",
+  "scripts": {
+    "dev": "NODE_ENV=development concurrently \"npm run watch:css\" \"node --watch script.js\"",
+    "devbun": "NODE_ENV=development concurrently \"bun run watch:css\" \"bun script.js\"",
+    "stg": "NODE_ENV=staging concurrently \"bun run watch:css\" \"bun script.js\"",
+    "start": "bun run build:css && NODE_ENV=production bun script.js",
+    "build:css": "bunx @tailwindcss/cli -i ./src/css/input.css -o ./src/css/style.css --minify",
+    "watch:css": "bunx @tailwindcss/cli -i ./src/css/input.css -o ./src/css/style.css --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KostRumahKu/Frontend-Kost-rumah-ku.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/KostRumahKu/Frontend-Kost-rumah-ku/issues"
+  },
+  "homepage": "https://github.com/KostRumahKu/Frontend-Kost-rumah-ku#readme",
+  "dependencies": {
+    "dotenv": "^18.0.6",
+    "express": "^5.2.1",
+    "morgan": "^1.12.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "concurrently": "^10.0.5",
+    "tailwindcss": "^4.3.3"
+  }
+}
