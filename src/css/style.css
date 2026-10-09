@@ -8,6 +8,10 @@
       "Segoe UI Symbol", "Noto Color Emoji";
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
       "Courier New", monospace;
+    --color-blue-500: oklch(62.3% 0.214 259.815);
+    --color-blue-700: oklch(48.8% 0.243 264.376);
+    --color-white: #fff;
+    --spacing: 0.25rem;
     --text-3xl: 1.875rem;
     --text-3xl--line-height: calc(2.25 / 1.875);
     --font-weight-bold: 700;
@@ -164,8 +168,29 @@
   }
 }
 @layer utilities {
-  .static {
-    position: static;
+  .flex {
+    display: flex;
+  }
+  .h-100 {
+    height: calc(var(--spacing) * 100);
+  }
+  .flex-4 {
+    flex: 4;
+  }
+  .items-center {
+    align-items: center;
+  }
+  .rounded {
+    border-radius: 0.25rem;
+  }
+  .bg-blue-500 {
+    background-color: var(--color-blue-500);
+  }
+  .px-4 {
+    padding-inline: calc(var(--spacing) * 4);
+  }
+  .py-2 {
+    padding-block: calc(var(--spacing) * 2);
   }
   .text-3xl {
     font-size: var(--text-3xl);
@@ -175,8 +200,16 @@
     --tw-font-weight: var(--font-weight-bold);
     font-weight: var(--font-weight-bold);
   }
+  .text-white {
+    color: var(--color-white);
+  }
   .underline {
     text-decoration-line: underline;
+  }
+  @media (hover: hover) {
+    .hover\:bg-blue-700:hover {
+      background-color: var(--color-blue-700);
+    }
   }
 }
 @property --tw-font-weight {
