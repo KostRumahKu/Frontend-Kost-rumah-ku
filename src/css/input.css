@@ -1,1 +1,38 @@
 @import "tailwindcss";
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url('/src/lib/assets/fonts/inter-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 500 600;
+  font-display: swap;
+  src: url('/src/lib/assets/fonts/playfair-display-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/src/lib/assets/fonts/playfair-display-latin-italic.woff2') format('woff2');
+}
+
+:root {
+  --color-primary: #5c3b28;       /* coklat tua: navbar, tombol utama */
+  --color-primary-dark: #44291a;  /* hover tombol utama */
+  --color-accent: #b5835a;        /* coklat karamel: aksen kecil */
+  --color-cream: #f5ecdc;         /* teks di atas coklat, latar panel */
+  --color-ink: #2b1d14;           /* teks utama di latar terang */
+  --color-muted: #7a6455;         /* teks sekunder */
+  --color-surface: #fffaf1;       /* kartu */
+
+  --font-heading: 'Playfair Display', Georgia, serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+}

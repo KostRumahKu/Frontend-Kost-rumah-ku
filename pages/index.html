@@ -1,16 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="/src/css/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>KostRumahKu | Comfort living space</title>
+  <meta name="description" content="Comfortable boarding house with a green courtyard. Browse available rooms and book online." />
+  <link rel="icon" href="../public/favicon.ico" />
+
+  <link rel="stylesheet" href="../src/css/style.css" />
 </head>
-<body>
-    <div>
-        <div class="text-3xl font-bold underline">
-            hello world
+
+<body class="flex h-dvh flex-col overflow-hidden bg-[var(--color-primary)] font-[family-name:var(--font-body)] text-[var(--color-ink)]">
+
+  <header id="top-nav" class="hidden shrink-0 md:block"></header>
+
+  <main class="relative min-h-0 flex-1 overflow-hidden">
+    <section aria-label="Welcome" class="relative flex h-full items-center justify-center text-center text-white">
+      <img id="hero-img" src="../public/img/halaman.jpg" alt="Courtyard walkway lined with green plants and warm lights" class="absolute inset-0 h-full w-full object-cover" />
+      <div class="absolute inset-0 bg-gradient-to-b from-black/55 via-black/35 to-black/60" aria-hidden="true"></div>
+
+      <div class="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-4 pt-[max(1rem,env(safe-area-inset-top))] md:hidden">
+        <span class="flex items-center gap-2 font-[family-name:var(--font-heading)] text-base font-semibold">
+          <svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3 2 12h3v8h5v-5h4v5h5v-8h3L12 3Z" /></svg>
+          KostRumahKu
+        </span>
+        <a href="auth/login.html" class="rounded-lg border border-white/60 px-4 py-1.5 text-sm font-medium">Sign in</a>
+      </div>
+
+      <div class="relative z-10 mx-auto max-w-3xl px-6">
+        <p class="text-sm tracking-wide text-white/90 md:text-lg">Comfort living space</p>
+        <h1 class="mt-3 font-[family-name:var(--font-heading)] font-medium leading-tight">
+          <span class="block text-5xl md:text-7xl">Welcome</span>
+          <span class="block text-xl italic text-white/90 md:text-3xl">to</span>
+          <span class="block text-5xl md:text-7xl">Kost Rumahku</span>
+        </h1>
+        <p class="mx-auto mt-5 max-w-md text-sm text-white/90 md:text-base">
+          Clean rooms, a green courtyard, and monthly payments handled in one place.
+        </p>
+        <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <a href="rooms" class="w-full rounded-lg border border-white/70 px-8 py-3 text-center font-medium transition-colors hover:border-[var(--color-cream)] hover:bg-[var(--color-cream)] hover:text-[var(--color-primary)] focus-visible:border-[var(--color-cream)] focus-visible:bg-[var(--color-cream)] focus-visible:text-[var(--color-primary)] active:bg-[var(--color-cream)] active:text-[var(--color-primary)] sm:w-auto">View Rooms</a>
+          <a href="booking" class="w-full rounded-lg border border-white/70 px-8 py-3 text-center font-medium transition-colors hover:border-[var(--color-cream)] hover:bg-[var(--color-cream)] hover:text-[var(--color-primary)] focus-visible:border-[var(--color-cream)] focus-visible:bg-[var(--color-cream)] focus-visible:text-[var(--color-primary)] active:bg-[var(--color-cream)] active:text-[var(--color-primary)] sm:w-auto">Book now</a>
         </div>
-    </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="bottom-nav" class="shrink-0 md:hidden"></div>
+
+  <script type="module" src="../src/pages/index.js"></script>
 </body>
 </html>
