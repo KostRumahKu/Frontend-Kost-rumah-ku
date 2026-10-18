@@ -7,7 +7,6 @@ mountNavbar({
   active: 'beranda',
   actions: [
     { label: 'Masuk', href: 'auth/login' },
-    { label: 'Daftar', href: 'register' },
   ],
 });
 
