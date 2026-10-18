@@ -4,10 +4,10 @@ import { mountNavbar } from '../components/navbar.js';
 mountNavbar({
   topEl: document.getElementById('top-nav'),
   bottomEl: document.getElementById('bottom-nav'),
-  active: null,
+  active: 'beranda',
   actions: [
-    { label: 'Sign in', href: 'auth/login' },
-    { label: 'Sign up', href: 'register' },
+    { label: 'Masuk', href: 'auth/login' },
+    { label: 'Daftar', href: 'register' },
   ],
 });
 

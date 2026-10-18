@@ -1,13 +1,13 @@
 // Navbar reusable: header atas (desktop) + tab bar bawah (mobile)
-import { icon } from './icons.js';
+const ICON_PATH = '../public/icons';
 
 export const defaultItems = [
-  { id: 'home', label: 'Home', icon: 'home', href: '' },
-  { id: 'rooms', label: 'Rooms', icon: 'rooms', href: 'rooms' },
-  { id: 'facilities', label: 'Facilities', icon: 'facilities', href: 'facilities' },
-  { id: 'testimonial', label: 'Testimonial', mobileLabel: 'Reviews', icon: 'testimonial', href: 'testimonial' },
-  { id: 'location', label: 'Location', icon: 'location', href: 'location' },
-  { id: 'contact', label: 'Contact', icon: 'contact', href: 'contact' },
+  { id: 'beranda', label: 'Beranda', icon: 'home.webp', href: '' },
+  { id: 'kamar', label: 'Kamar', icon: 'rooms.webp', href: 'kamar' },
+  { id: 'fasilitas', label: 'Fasilitas', icon: 'facilities.webp', href: 'fasilitas' },
+  { id: 'testimoni', label: 'Testimoni', icon: 'testimonial.webp', href: 'testimoni' },
+  { id: 'lokasi', label: 'Lokasi', icon: 'location.webp', href: 'lokasi' },
+  { id: 'kontak', label: 'Kontak', icon: 'contact.webp', href: 'kontak' },
 ];
 
 const logo =
@@ -22,8 +22,9 @@ function topItem(item) {
 }
 
 function bottomItem(item) {
-  const cls = 'flex flex-1 flex-col items-center gap-1 py-2 text-[10px] text-white/65 aria-[current=page]:text-white';
-  const inner = `${icon(item.icon)}${item.mobileLabel ?? item.label}`;
+  const cls = 'group flex flex-1 flex-col items-center gap-1 py-2 text-[10px] text-white/65 aria-[current=page]:text-white';
+  const img = `<img src="${ICON_PATH}/${item.icon}" alt="" class="h-6 w-6 opacity-65 group-aria-[current=page]:opacity-100" />`;
+  const inner = `${img}${item.mobileLabel ?? item.label}`;
   return item.href
     ? `<a href="${item.href}" data-nav-id="${item.id}" class="${cls}">${inner}</a>`
     : `<button type="button" data-nav-id="${item.id}" class="${cls}">${inner}</button>`;
