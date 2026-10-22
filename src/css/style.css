@@ -164,9 +164,6 @@
   }
 }
 @layer utilities {
-  .static {
-    position: static;
-  }
   .text-3xl {
     font-size: var(--text-3xl);
     line-height: var(--tw-leading, var(--text-3xl--line-height));
