@@ -16,7 +16,7 @@ const enforceVersion = () => {
   if (bunVersion) {
     if (isVersionLowerOrEqual(bunVersion, "1.4.3")) {
       console.error(`\x1b[41m\x1b[37m [FATAL ERROR] \x1b[0m Versi Bun Anda (${bunVersion}) rentan/tidak didukung!`);
-      console.error(`\x1b[33m=> Harap upgrade ke Bun versi di atas 1.4.3 untuk menjalankan backend ini.\x1b[0m\n`);
+      console.error(`\x1b[33m=> Harap upgrade ke Bun versi di atas 1.4.3 untuk menjalankan Frontend ini.\x1b[0m\n`);
       process.exit(1); 
     }
   } else if (nodeVersion) {
@@ -37,7 +37,7 @@ const enforceVersion = () => {
 
     if (isInvalid) {
       console.error(`\x1b[41m\x1b[37m [FATAL ERROR] \x1b[0m Versi Node.js Anda (${nodeVersion}) rentan/tidak didukung!`);
-      console.error(`\x1b[33m=> Harap upgrade ke versi di atas ${minRequired} untuk menjalankan backend ini.\x1b[0m\n`);
+      console.error(`\x1b[33m=> Harap upgrade ke versi di atas ${minRequired} untuk menjalankan Frontend ini.\x1b[0m\n`);
       process.exit(1);
     }
   }
