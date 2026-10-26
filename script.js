@@ -4,6 +4,10 @@ import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import morgan from "morgan";
 
+
+import "./src/utils/version-check.js";
+
+
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
