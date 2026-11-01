@@ -47,6 +47,15 @@
 
   <div id="bottom-nav" class="shrink-0 md:hidden"></div>
 
+<script>
+  (async () => {
+    try {
+      const r = await fetch('/api/client-config');
+      window.__ENV__ = await r.json();
+    } catch { window.__ENV__ = {}; }
+  })();
+</script>
+
   <script type="module" src="../src/pages/index.js"></script>
 </body>
 </html>

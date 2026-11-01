@@ -1,14 +1,71 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login-kostRumahKu</title>
-    <link rel="stylesheet" href="/src/css/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Masuk | KostRumahKu</title>
+  <link rel="icon" href="/public/favicon.ico" />
+
+  <link rel="stylesheet" href="/src/css/style.css" />
 </head>
-<body>
-    <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-        halo saya ada di login tes
-    </button>
+
+<body class="relative flex min-h-dvh items-center justify-center bg-[var(--color-primary)] px-4 py-16 font-[family-name:var(--font-body)] text-[var(--color-ink)]">
+
+  <!-- Latar: foto kost + lapisan gelap -->
+  <img id="bg-img" src="/public/img/halaman.webp" alt="" class="fixed inset-0 h-full w-full object-cover" />
+  <div class="fixed inset-0 bg-gradient-to-b from-black/55 via-black/45 to-black/65" aria-hidden="true"></div>
+
+  <a href="/" class="absolute left-4 top-4 z-10 rounded-lg px-3 py-2 text-sm text-white/90 hover:bg-white/10 pt-[max(0.5rem,env(safe-area-inset-top))]">&larr; Beranda</a>
+
+  <main class="relative z-10 w-full max-w-md">
+    <div class="rounded-2xl bg-[var(--color-surface)] p-6 shadow-xl sm:p-8">
+
+      <div class="flex items-center gap-2 font-[family-name:var(--font-heading)] text-lg font-semibold text-[var(--color-primary)]">
+        <svg class="h-7 w-7" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3 2 12h3v8h5v-5h4v5h5v-8h3L12 3Z" /></svg>
+        KostRumahKu
+      </div>
+
+      <h1 class="mt-6 font-[family-name:var(--font-heading)] text-3xl font-medium">Selamat datang kembali</h1>
+      <p class="mt-2 text-sm text-[var(--color-muted)]">Masuk untuk melihat tagihan, riwayat pembayaran, dan pengumuman kost.</p>
+
+      <!-- Pesan error dari server -->
+      <p id="form-error" role="alert" class="mt-5 hidden rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800"></p>
+
+      <form id="login-form" class="mt-6 space-y-5" novalidate>
+        <div>
+          <label for="email" class="mb-1.5 block text-sm font-medium">Email</label>
+          <input id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="nama@email.com" aria-describedby="email-error"
+            class="w-full rounded-lg border border-[var(--color-primary)]/30 bg-white px-4 py-3 text-[var(--color-ink)] placeholder:text-[var(--color-muted)]/70 focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50 aria-[invalid=true]:border-red-700" />
+          <p id="email-error" class="mt-1.5 hidden text-sm text-red-700"></p>
+        </div>
+
+        <div>
+          <label for="kata-sandi" class="mb-1.5 block text-sm font-medium">Kata sandi</label>
+          <div class="relative">
+            <input id="kata-sandi" name="kata-sandi" type="password" autocomplete="current-password" placeholder="Masukkan kata sandi" aria-describedby="sandi-error"
+              class="w-full rounded-lg border border-[var(--color-primary)]/30 bg-white py-3 pl-4 pr-28 text-[var(--color-ink)] placeholder:text-[var(--color-muted)]/70 focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50 aria-[invalid=true]:border-red-700" />
+            <button id="toggle-sandi" type="button" aria-pressed="false" class="absolute inset-y-0 right-0 rounded-r-lg px-4 text-sm font-medium text-[var(--color-primary)] hover:underline">Tampilkan</button>
+          </div>
+          <p id="sandi-error" class="mt-1.5 hidden text-sm text-red-700"></p>
+        </div>
+
+        <button id="submit-btn" type="submit" class="w-full rounded-lg bg-[var(--color-primary)] py-3 font-medium text-[var(--color-cream)] transition-colors hover:bg-[var(--color-primary-dark)] disabled:cursor-not-allowed disabled:opacity-60">Masuk</button>
+      </form>
+
+      <p class="mt-6 border-t border-black/10 pt-5 text-center text-sm text-[var(--color-muted)]">
+        Belum punya akun? Akun dibuat otomatis lewat email setelah pembayaran booking selesai.
+        <a href="/booking" class="font-medium text-[var(--color-primary)] underline underline-offset-4">Pesan kamar</a>
+      </p>
+    </div>
+  </main>
+
+<script type="module">
+  try {
+    const r = await fetch('/api/client-config');
+    window.__ENV__ = await r.json();
+  } catch { window.__ENV__ = {}; }
+
+  await import('/src/pages/auth/login.js');
+</script>
 </body>
 </html>
