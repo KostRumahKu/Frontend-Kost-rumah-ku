@@ -1,15 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title> //title nya
-    <link rel="stylesheet" href="/src/css/style.css"> // cara panggil css nya
-    <script type="module" src="/src/pages/admin/keuangan.js"></script> // cara panggil script dom javascript nya
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Dashboard Admin | KostRumahKu</title>
+  <link rel="icon" href="/public/favicon.ico" />
+
+  <link rel="stylesheet" href="/src/css/style.css" />
 </head>
-<body>
-    <div>
-        keuangan 2 // isi dari div
-    </div>
+
+<body class="flex h-dvh overflow-hidden bg-[var(--color-cream)] font-[family-name:var(--font-body)] text-[var(--color-ink)]">
+
+  <aside id="sidebar" class="hidden shrink-0 md:block"></aside>
+
+  <div class="flex min-w-0 flex-1 flex-col">
+    <header class="flex shrink-0 items-center justify-between gap-3 border-b border-black/10 bg-[var(--color-surface)] px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] md:px-8 md:py-4">
+      <div>
+        <h1 class="font-[family-name:var(--font-heading)] text-xl font-semibold md:text-2xl">Dashboard</h1>
+        <p id="salam" class="text-sm text-[var(--color-muted)]"></p>
+      </div>
+      <!-- Hanya di HP; di desktop tombol Keluar ada di sidebar -->
+      <button id="logout-mobile" type="button" class="rounded-lg border border-[var(--color-primary)]/30 px-4 py-2 text-sm font-medium text-[var(--color-primary)] md:hidden">Keluar</button>
+    </header>
+
+    <!-- Hanya area ini yang bisa di-scroll. pb-28 supaya tidak tertutup bar bawah di HP -->
+    <main class="min-h-0 flex-1 overflow-y-auto p-4 pb-28 md:p-8 md:pb-8">
+      <p id="dash-error" role="alert" class="mb-4 hidden rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800"></p>
+
+      <section id="stats" aria-label="Ringkasan" class="grid grid-cols-2 gap-4 lg:grid-cols-4"></section>
+
+      <!-- Area konten berikutnya (grafik, daftar tagihan, dll) ditambahkan di bawah sini -->
+    </main>
+  </div>
+
+  <!-- Bar bawah (mobile), diisi oleh src/components/admin-nav.js -->
+  <div id="bottom-nav" class="md:hidden"></div>
+
+  <script type="module">
+    try {
+      const r = await fetch('/api/client-config');
+      window.__ENV__ = await r.json();
+    } catch { window.__ENV__ = {}; }
+
+    await import('/src/pages/admin/dashboard-admin.js');
+  </script>
 </body>
 </html>
