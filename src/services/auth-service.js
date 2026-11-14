@@ -1,16 +1,10 @@
-// Pemanggilan API autentikasi
-import { API_BASE_URL, INTERNAL_KEY } from '../utils/config.js';
+import { API_BASE_URL } from '../utils/config.js';
 import { getToken } from '../utils/session.js';
 
-/**
- * Header dasar yang disertakan di setiap request ke backend.
- * x-internal-key  : identifikasi aplikasi frontend ke backend.
- * Authorization   : JWT token sesi aktif (opsional, hanya kalau sudah login).
- */
-function buildHeaders(withAuth = false) {
+export function buildHeaders(withAuth = false) {
   const headers = {
     'Content-Type': 'application/json',
-    'x-internal-key': INTERNAL_KEY(),
+    // x-internal-key diinjek oleh proxy Express — tidak dikirim dari browser
   };
   if (withAuth) {
     const token = getToken();
@@ -19,11 +13,6 @@ function buildHeaders(withAuth = false) {
   return headers;
 }
 
-/**
- * Login penyewa.
- * Request : POST /api/auth/penyewa/login  { email, "kata-sandi" }
- * Response: { status: "sukses", pesan, data: { token, peran, nama } }
- */
 export async function loginPenyewa(email, kataSandi) {
   let res;
   try {
@@ -35,24 +24,17 @@ export async function loginPenyewa(email, kataSandi) {
   } catch {
     throw new Error('Tidak dapat terhubung ke server. Periksa koneksi internetmu.');
   }
-
   const hasil = await res.json().catch(() => null);
-
   if (!res.ok || hasil?.status !== 'sukses') {
     throw new Error(hasil?.pesan ?? hasil?.message ?? 'Login gagal. Silakan coba lagi.');
   }
-
   return hasil.data; // { token, peran, nama }
 }
 
-/**
- * Login owner.
- * Request : POST /api/auth/owner/login  { email, "kata-sandi" }
- */
 export async function loginOwner(email, kataSandi) {
   let res;
   try {
-    res = await fetch(`${API_BASE_URL()}/api/auth/owner/login`, {
+    res = await fetch(`${API_BASE_URL()}/api/auth/pemilik/login`, {
       method: 'POST',
       headers: buildHeaders(),
       body: JSON.stringify({ email, 'kata-sandi': kataSandi }),
@@ -60,20 +42,13 @@ export async function loginOwner(email, kataSandi) {
   } catch {
     throw new Error('Tidak dapat terhubung ke server. Periksa koneksi internetmu.');
   }
-
   const hasil = await res.json().catch(() => null);
-
   if (!res.ok || hasil?.status !== 'sukses') {
     throw new Error(hasil?.pesan ?? hasil?.message ?? 'Login gagal. Silakan coba lagi.');
   }
-
-  return hasil.data; // { token, peran, nama }
+  return hasil.data;
 }
 
-/**
- * Login admin.
- * Request : POST /api/auth/admin/login  { email, "kata-sandi" }
- */
 export async function loginAdmin(email, kataSandi) {
   let res;
   try {
@@ -85,15 +60,43 @@ export async function loginAdmin(email, kataSandi) {
   } catch {
     throw new Error('Tidak dapat terhubung ke server. Periksa koneksi internetmu.');
   }
-
   const hasil = await res.json().catch(() => null);
-
   if (!res.ok || hasil?.status !== 'sukses') {
     throw new Error(hasil?.pesan ?? hasil?.message ?? 'Login gagal. Silakan coba lagi.');
   }
-
-  return hasil.data; // { token, peran, nama }
+  return hasil.data;
 }
 
-// buildHeaders diekspor supaya bisa dipakai service lain (dashboard, pembayaran, dll.)
-export { buildHeaders };
+export async function lupaSandi(email) {
+  let res;
+  try {
+    res = await fetch(`${API_BASE_URL()}/api/auth/lupa-password`, {
+      method: 'POST',
+      headers: buildHeaders(),
+      body: JSON.stringify({ email }),
+    });
+  } catch {
+    throw new Error('Tidak dapat terhubung ke server. Periksa koneksi internetmu.');
+  }
+  const hasil = await res.json().catch(() => null);
+  if (!res.ok || hasil?.status !== 'sukses') {
+    throw new Error(hasil?.pesan ?? hasil?.message ?? 'Gagal mengirim OTP. Silakan coba lagi.');
+  }
+}
+
+export async function konfirmasiLupaSandi(email, otp, passwordBaru) {
+  let res;
+  try {
+    res = await fetch(`${API_BASE_URL()}/api/auth/lupa-password/konfirmasi`, {
+      method: 'POST',
+      headers: buildHeaders(),
+      body: JSON.stringify({ email, otp, passwordBaru }),
+    });
+  } catch {
+    throw new Error('Tidak dapat terhubung ke server. Periksa koneksi internetmu.');
+  }
+  const hasil = await res.json().catch(() => null);
+  if (!res.ok || hasil?.status !== 'sukses') {
+    throw new Error(hasil?.pesan ?? hasil?.message ?? 'Gagal mereset sandi. Silakan coba lagi.');
+  }
+}

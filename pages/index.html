@@ -51,7 +51,7 @@
 <script>
   (async () => {
     try {
-      const r = await fetch('/api/client-config');
+      const r = await fetch('/config');
       window.__ENV__ = await r.json();
     } catch { window.__ENV__ = {}; }
   })();

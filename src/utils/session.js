@@ -1,13 +1,12 @@
-// Penyimpanan sesi login di browser. Semua akses sesi lewat file ini,
-// supaya mudah diganti kalau cara penyimpanannya berubah.
+// Penyimpanan sesi login di browser.
+// Token JWT dari backend disimpan di localStorage,
+// dikirim sebagai Authorization: Bearer di setiap request API.
 const KEY = 'kostrumahku-session';
 
 export function saveSession({ token, peran, nama }) {
   try {
     localStorage.setItem(KEY, JSON.stringify({ token, peran, nama }));
-  } catch {
-    // penyimpanan diblokir browser; pengguna harus login ulang saat membuka halaman lain
-  }
+  } catch { /* abaikan */ }
 }
 
 export function getSession() {
@@ -19,7 +18,6 @@ export function getSession() {
   }
 }
 
-/** Shortcut untuk ambil JWT token dari sesi aktif. */
 export function getToken() {
   return getSession()?.token ?? null;
 }
@@ -27,7 +25,5 @@ export function getToken() {
 export function clearSession() {
   try {
     localStorage.removeItem(KEY);
-  } catch {
-    // abaikan
-  }
+  } catch { /* abaikan */ }
 }

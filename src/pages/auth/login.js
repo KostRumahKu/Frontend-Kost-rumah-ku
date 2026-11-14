@@ -1,4 +1,4 @@
-// Halaman login khusus penyewa — /auth/login
+// Login penyewa — /auth/login
 import { loginPenyewa } from '../../services/auth-service.js';
 import { saveSession } from '../../utils/session.js';
 
@@ -13,15 +13,13 @@ const formError  = document.getElementById('form-error');
 const emailError = document.getElementById('email-error');
 const sandiError = document.getElementById('sandi-error');
 
-// ── Toggle kata sandi ────────────────────────────────────────────────────────
 toggleBtn.addEventListener('click', () => {
   const show = sandiInput.type === 'password';
-  sandiInput.type      = show ? 'text' : 'password';
+  sandiInput.type       = show ? 'text' : 'password';
   toggleBtn.textContent = show ? 'Sembunyikan' : 'Tampilkan';
   toggleBtn.setAttribute('aria-pressed', String(show));
 });
 
-// ── Helper UI ────────────────────────────────────────────────────────────────
 function showError(el, msg) { el.textContent = msg; el.classList.remove('hidden'); }
 function clearError(el)     { el.textContent = '';  el.classList.add('hidden');    }
 function setInvalid(input, v) { input.setAttribute('aria-invalid', String(v)); }
@@ -30,13 +28,11 @@ function setLoading(on) {
   submitBtn.textContent = on ? 'Memproses…' : 'Masuk';
 }
 
-// ── Validasi ─────────────────────────────────────────────────────────────────
 function validate(email, sandi) {
   let ok = true;
   [emailError, sandiError, formError].forEach(clearError);
   setInvalid(emailInput, false);
   setInvalid(sandiInput, false);
-
   if (!email) {
     showError(emailError, 'Email wajib diisi.'); setInvalid(emailInput, true); ok = false;
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -48,7 +44,6 @@ function validate(email, sandi) {
   return ok;
 }
 
-// ── Submit ───────────────────────────────────────────────────────────────────
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
   const email = emailInput.value.trim();
@@ -58,7 +53,7 @@ form.addEventListener('submit', async (e) => {
   setLoading(true);
   try {
     const data = await loginPenyewa(email, sandi); // { token, peran, nama }
-    saveSession(data);
+    saveSession({ token: data.token, peran: String(data.peran).toLowerCase(), nama: data.nama });
     window.location.href = REDIRECT;
   } catch (err) {
     showError(formError, err.message);

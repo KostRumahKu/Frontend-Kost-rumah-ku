@@ -1,16 +1,17 @@
-// Penjaga halaman: wajib login dan sesuai peran
+// Penjaga halaman: cek peran dari sessionStorage.
+// Token JWT diverifikasi backend via cookie — tidak perlu cek token di sini.
 import { getSession, clearSession } from './session.js';
 import { ROLE_HOME } from './config.js';
+import { clearApiCache } from '../services/api.js';
 
 /**
  * Pakai di awal script halaman yang dilindungi.
- * @returns sesi jika boleh masuk, atau null jika pengguna dialihkan
+ * @returns sesi { peran, nama } jika boleh masuk, atau null jika dialihkan
  */
 export function requireRole(role) {
   const sesi = getSession();
 
   if (!sesi?.token) {
-    // Arahkan ke halaman login sesuai role yang diminta
     const loginUrl = role === 'admin' || role === 'owner'
       ? '/auth/admin-login'
       : '/auth/login';
@@ -23,13 +24,17 @@ export function requireRole(role) {
     window.location.replace(ROLE_HOME[peran] ?? '/auth/login');
     return null;
   }
+
   return sesi;
 }
 
 export function logout() {
   const sesi = getSession();
   const peran = String(sesi?.peran ?? '').toLowerCase();
+  clearApiCache();
   clearSession();
+  // Hapus session JWT di proxy server
+  fetch('/session/clear', { method: 'POST' }).catch(() => {});
   const loginUrl = peran === 'admin' || peran === 'owner'
     ? '/auth/admin-login'
     : '/auth/login';

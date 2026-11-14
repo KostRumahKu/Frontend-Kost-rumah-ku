@@ -88,7 +88,7 @@
         <div data-only="add" class="grid grid-cols-2 gap-4">
           <div>
             <label for="f-lantai" class="mb-1.5 block text-sm font-medium">Lantai</label>
-            <input id="f-lantai" type="number" inputmode="numeric" min="1" max="2" class="w-full rounded-lg border border-[var(--color-primary)]/30 bg-white px-3 py-2.5 text-sm focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50 aria-[invalid=true]:border-red-700" />
+            <input id="f-lantai" type="number" inputmode="numeric" min="1" max="10" class="w-full rounded-lg border border-[var(--color-primary)]/30 bg-white px-3 py-2.5 text-sm focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50 aria-[invalid=true]:border-red-700" />
           </div>
           <div>
             <label for="f-harga" class="mb-1.5 block text-sm font-medium">Harga / bulan (Rp)</label>
@@ -113,8 +113,8 @@
         </div>
 
         <div class="flex justify-end gap-3 pt-2">
-          <button type="button" data-close class="rounded-lg border border-[var(--color-primary)]/40 px-5 py-2.5 text-sm font-medium text-[var(--color-primary)] hover:bg-[var(--color-primary)]/5">Batal</button>
-          <button id="f-submit" type="submit" class="rounded-lg bg-[var(--color-primary)] px-5 py-2.5 text-sm font-medium text-[var(--color-cream)] transition-colors hover:bg-[var(--color-primary-dark)] disabled:cursor-not-allowed disabled:opacity-60">Simpan</button>
+          <button type="button" data-close data-btn="outline">Batal</button>
+          <button id="f-submit" type="submit" data-btn="primary">Simpan</button>
         </div>
       </form>
     </div>
@@ -129,7 +129,7 @@
       </div>
       <p id="detail-error" role="alert" class="mt-4 hidden rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800"></p>
       <div id="detail-body" class="mt-4"></div>
-      <div id="detail-actions" class="mt-6 flex flex-wrap gap-3"></div>
+      <div id="detail-actions"></div>
     </div>
   </dialog>
 
@@ -194,8 +194,8 @@
         </div>
 
         <div class="flex justify-end gap-3 pt-2">
-          <button type="button" data-close class="rounded-lg border border-[var(--color-primary)]/40 px-5 py-2.5 text-sm font-medium text-[var(--color-primary)] hover:bg-[var(--color-primary)]/5">Batal</button>
-          <button id="p-submit" type="submit" class="rounded-lg bg-[var(--color-primary)] px-5 py-2.5 text-sm font-medium text-[var(--color-cream)] transition-colors hover:bg-[var(--color-primary-dark)] disabled:cursor-not-allowed disabled:opacity-60">Simpan penghuni</button>
+          <button type="button" data-close data-btn="outline">Batal</button>
+          <button id="p-submit" type="submit" data-btn="primary">Simpan penghuni</button>
         </div>
       </form>
     </div>
@@ -218,8 +218,8 @@
           <select id="pindah-tujuan" class="w-full rounded-lg border border-[var(--color-primary)]/30 bg-white px-3 py-2.5 text-sm focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50"></select>
         </div>
         <div class="flex justify-end gap-3 pt-2">
-          <button type="button" data-close class="rounded-lg border border-[var(--color-primary)]/40 px-5 py-2.5 text-sm font-medium text-[var(--color-primary)] hover:bg-[var(--color-primary)]/5">Batal</button>
-          <button id="pindah-submit" type="submit" class="rounded-lg bg-[var(--color-primary)] px-5 py-2.5 text-sm font-medium text-[var(--color-cream)] transition-colors hover:bg-[var(--color-primary-dark)] disabled:cursor-not-allowed disabled:opacity-60">Pindahkan</button>
+          <button type="button" data-close data-btn="outline">Batal</button>
+          <button id="pindah-submit" type="submit" data-btn="primary">Pindahkan</button>
         </div>
       </form>
     </div>
@@ -227,7 +227,7 @@
 
   <script type="module">
     try {
-      const r = await fetch('/api/client-config');
+      const r = await fetch('/config');
       window.__ENV__ = await r.json();
     } catch { window.__ENV__ = {}; }
 

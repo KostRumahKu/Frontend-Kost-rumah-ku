@@ -1,5 +1,7 @@
 // Logic for pages/admin/kamar.html
 import { mountAdminNav } from '../../components/admin-nav.js';
+import { Button, hydrateButtons } from '../../components/button.js';
+import { AdminRoomCard, statusInfo, firstPhoto } from '../../components/admin-room-card.js';
 import { requireRole, logout } from '../../utils/auth-guard.js';
 import { formatRupiah } from '../../utils/format.js';
 import {
@@ -39,81 +41,19 @@ const formatTanggalSaja = (iso) => {
   return Number.isNaN(d.getTime()) ? '-' : new Intl.DateTimeFormat('id-ID', { dateStyle: 'long' }).format(d);
 };
 
-// Class ditulis utuh supaya terbaca oleh Tailwind (jangan disambung dari potongan string)
-const BTN_PRIMARY =
-  'rounded-lg bg-[var(--color-primary)] px-5 py-2.5 text-sm font-medium text-[var(--color-cream)] transition-colors hover:bg-[var(--color-primary-dark)] disabled:cursor-not-allowed disabled:opacity-60';
-const BTN_OUTLINE =
-  'rounded-lg border border-[var(--color-primary)]/40 px-5 py-2.5 text-sm font-medium text-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 disabled:cursor-not-allowed disabled:opacity-60';
-const BTN_DANGER =
-  'rounded-lg border border-red-700/40 px-5 py-2.5 text-sm font-medium text-red-800 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60';
-
-function btn(label, className, onClick) {
-  const b = el('button', className, label);
-  b.type = 'button';
-  b.addEventListener('click', onClick);
-  return b;
-}
-
-const STATUS = {
-  kosong: { label: 'Kosong', cls: 'bg-green-100 text-green-800' },
-  dipesan: { label: 'Dipesan', cls: 'bg-amber-100 text-amber-800' },
-  terisi: { label: 'Terisi', cls: 'bg-stone-200 text-stone-700' },
-  perbaikan: { label: 'Perbaikan', cls: 'bg-red-100 text-red-800' },
-};
-const statusInfo = (s) => STATUS[s] ?? { label: s ?? '-', cls: 'bg-stone-200 text-stone-700' };
-
-const firstPhoto = (room) =>
-  (room.foto ?? []).find((f) => typeof f === 'string' && /^https?:\/\//.test(f));
-
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phoneRegex = /^[0-9+\s-]{8,16}$/;
 
 /* ---------- State ---------- */
-let kamarAktif = null; // data detail kamar yang sedang dibuka
+let kamarAktif = null;
 let modeForm = 'add'; // 'add' | 'edit'
 
-const dlgForm = $('dlg-form');
-const dlgDetail = $('dlg-detail');
+const dlgForm    = $('dlg-form');
+const dlgDetail  = $('dlg-detail');
 const dlgPenghuni = $('dlg-penghuni');
-const dlgPindah = $('dlg-pindah');
+const dlgPindah  = $('dlg-pindah');
 
 /* ---------- Daftar kamar ---------- */
-function buildPlaceholder() {
-  return el('div', 'flex h-32 items-center justify-center bg-[var(--color-primary)]/10 text-sm text-[var(--color-muted)]', 'Belum ada foto');
-}
-
-function buildKamarCard(room) {
-  const status = statusInfo(room.status);
-  const card = el('article', 'overflow-hidden rounded-xl bg-[var(--color-surface)] shadow-sm');
-
-  const foto = firstPhoto(room);
-  let media = buildPlaceholder();
-  if (foto) {
-    media = el('img', 'h-32 w-full object-cover');
-    media.src = foto;
-    media.alt = `Foto kamar ${room['nama-kamar']}`;
-    media.loading = 'lazy';
-    media.addEventListener('error', () => media.replaceWith(buildPlaceholder()));
-  }
-
-  const body = el('div', 'p-4');
-  const row = el('div', 'flex items-start justify-between gap-3');
-  row.append(
-    el('h3', 'font-[family-name:var(--font-heading)] text-lg font-semibold', `Kamar ${room['nama-kamar']}`),
-    el('span', `rounded-full px-3 py-1 text-xs font-medium ${status.cls}`, status.label)
-  );
-
-  const info = el('p', 'mt-1 text-sm capitalize text-[var(--color-muted)]', `${room['tipe-kamar'] ?? '-'}, lantai ${room.lantai ?? '-'}`);
-  const harga = el('p', 'mt-3 font-semibold text-[var(--color-primary)]', `${formatRupiah(room.harga ?? 0)} / bulan`);
-
-  body.append(row, info, harga);
-  if (room.diarsipkan) body.append(el('p', 'mt-2 text-xs font-medium text-[var(--color-muted)]', 'Diarsipkan'));
-  body.append(btn('Lihat detail', `mt-4 w-full ${BTN_OUTLINE}`, () => bukaDetail(room._id)));
-
-  card.append(media, body);
-  return card;
-}
-
 function renderKamar(list) {
   const wadah = $('daftar');
   wadah.replaceChildren();
@@ -123,7 +63,7 @@ function renderKamar(list) {
     wadah.append(el('p', 'text-sm text-[var(--color-muted)]', 'Tidak ada kamar yang cocok dengan filter ini.'));
     return;
   }
-  wadah.append(...list.map(buildKamarCard));
+  wadah.append(...list.map((room) => AdminRoomCard(room, bukaDetail)));
 }
 
 async function muatKamar() {
@@ -167,21 +107,24 @@ function renderDetail(room) {
   body.replaceChildren();
   aksi.replaceChildren();
 
+  // ── Foto ────────────────────────────────────────────────────────────────────
   const foto = firstPhoto(room);
   if (foto) {
-    const img = el('img', 'mb-4 h-40 w-full rounded-lg object-cover');
+    const img = el('img', 'mb-4 h-44 w-full rounded-xl object-cover');
     img.src = foto;
     img.alt = `Foto kamar ${room['nama-kamar']}`;
     img.addEventListener('error', () => img.remove());
     body.append(img);
   }
 
-  const dl = el('dl', 'grid grid-cols-3 gap-x-3 gap-y-2 text-sm');
+  // ── Info kamar ───────────────────────────────────────────────────────────────
+  const infoKamar = el('div', 'rounded-xl bg-[var(--color-cream)] p-4');
+  const dl = el('dl', 'grid grid-cols-3 gap-x-3 gap-y-3 text-sm');
   const addRow = (label, value) => {
-    const dd = el('dd', 'col-span-2 font-medium');
+    const dd = el('dd', 'col-span-2 font-medium text-[var(--color-ink)]');
     if (value instanceof Node) dd.append(value);
     else dd.textContent = value;
-    dl.append(el('dt', 'text-[var(--color-muted)]', label), dd);
+    dl.append(el('dt', 'text-[var(--color-muted)] self-center', label), dd);
   };
 
   addRow('Status', el('span', `rounded-full px-3 py-1 text-xs font-medium ${status.cls}`, status.label));
@@ -189,38 +132,54 @@ function renderDetail(room) {
   addRow('Lantai', String(room.lantai ?? '-'));
   addRow('Harga', `${formatRupiah(room.harga ?? 0)} / bulan`);
   addRow('Fasilitas', (room.fasilitas ?? []).length ? room.fasilitas.join(', ') : '-');
-  body.append(dl);
+  infoKamar.append(dl);
+  body.append(infoKamar);
 
-  body.append(el('h3', 'mt-5 text-sm font-semibold', 'Penghuni aktif'));
+  // ── Info penghuni ────────────────────────────────────────────────────────────
+  const judulPenghuni = el('p', 'mt-4 mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]', 'Penghuni aktif');
+  body.append(judulPenghuni);
+
   if (penghuni) {
-    const dp = el('dl', 'mt-2 grid grid-cols-3 gap-x-3 gap-y-2 text-sm');
-    const add = (label, value) => dp.append(el('dt', 'text-[var(--color-muted)]', label), el('dd', 'col-span-2 font-medium', value || '-'));
-    add('Nama', penghuni['nama-lengkap']);
-    add('Email', penghuni.email);
+    const infoPenghuni = el('div', 'rounded-xl bg-[var(--color-accent)]/10 p-4');
+    const dp = el('dl', 'grid grid-cols-3 gap-x-3 gap-y-3 text-sm');
+    const add = (label, value) => dp.append(
+      el('dt', 'text-[var(--color-muted)] self-center', label),
+      el('dd', 'col-span-2 font-medium text-[var(--color-ink)]', value || '-')
+    );
+    add('Nama',    penghuni['nama-lengkap']);
+    add('Email',   penghuni.email);
     add('Telepon', penghuni['nomor-telepon']);
     add('Periode', `${formatTanggalSaja(penghuni['tanggal-mulai'])} s.d. ${formatTanggalSaja(penghuni['tanggal-berakhir'])}`);
-    body.append(dp);
+    infoPenghuni.append(dp);
+    body.append(infoPenghuni);
   } else {
-    body.append(el('p', 'mt-2 text-sm text-[var(--color-muted)]', 'Belum ada penghuni aktif.'));
+    body.append(el('p', 'rounded-xl bg-[var(--color-cream)] px-4 py-3 text-sm text-[var(--color-muted)]', 'Belum ada penghuni aktif.'));
   }
-  body.append(el('p', 'mt-4 text-sm text-[var(--color-muted)]', `Riwayat sewa: ${riwayat.length} catatan`));
+
+  // ── Riwayat ──────────────────────────────────────────────────────────────────
+  const riwayatEl = el('p', 'mt-3 text-xs text-[var(--color-muted)]', `Riwayat sewa: ${riwayat.length} catatan`);
+  body.append(riwayatEl);
 
   if (room.diarsipkan) {
     aksi.append(el('p', 'text-sm text-[var(--color-muted)]', 'Kamar ini sudah diarsipkan, jadi tidak bisa diubah.'));
     return;
   }
 
-  aksi.append(btn('Ubah', BTN_OUTLINE, () => bukaFormUbah(room)));
+  // ── Garis pemisah ────────────────────────────────────────────────────────────
+  aksi.className = 'mt-5 border-t border-[var(--color-primary)]/10 pt-5 flex flex-wrap gap-2';
+
+  aksi.append(Button({ label: 'Ubah',              variant: 'outline', onClick: () => bukaFormUbah(room) }));
   aksi.append(
     penghuni
-      ? btn('Pindahkan penghuni', BTN_OUTLINE, () => bukaPindah(room))
-      : btn('Tambah penghuni', BTN_PRIMARY, () => bukaPenghuni(room))
+      ? Button({ label: 'Pindahkan penghuni', variant: 'outline', onClick: () => bukaPindah(room) })
+      : Button({ label: 'Tambah penghuni',    variant: 'outline', onClick: () => bukaPenghuni(room) })
   );
-  aksi.append(btn('Reset kamar', BTN_OUTLINE, () => aksiReset(room)));
-  aksi.append(btn('Hapus', BTN_DANGER, () => aksiHapus(room)));
+  aksi.append(Button({ label: 'Reset kamar', variant: 'outline', onClick: () => aksiReset(room) }));
+  // Tombol hapus dipisah ke kanan
+  const hapusBtn = Button({ label: 'Hapus', variant: 'danger', onClick: () => aksiHapus(room), className: 'ml-auto' });
+  aksi.append(hapusBtn);
 }
 
-// Jalankan satu aksi dari dialog detail (reset / hapus)
 async function jalankanAksi(fn, pesanSukses) {
   const tombol = [...$('detail-actions').querySelectorAll('button')];
   setMessage($('detail-error'), '');
@@ -272,9 +231,9 @@ function bukaFormUbah(room) {
   $('dlg-form-title').textContent = `Ubah kamar ${room['nama-kamar']}`;
   $('f-submit').textContent = 'Simpan perubahan';
   $('f-info').textContent = `Tipe ${room['tipe-kamar'] ?? '-'}, lantai ${room.lantai ?? '-'}, ${formatRupiah(room.harga ?? 0)} / bulan. Data ini tidak bisa diubah dari sini.`;
-  $('f-nama').value = room['nama-kamar'] ?? '';
+  $('f-nama').value  = room['nama-kamar'] ?? '';
   $('f-status').value = room.status ?? '';
-  $('f-foto').value = (room.foto ?? []).join('\n');
+  $('f-foto').value  = (room.foto ?? []).join('\n');
   dlgForm.showModal();
 }
 
@@ -289,19 +248,18 @@ $('form-kamar').addEventListener('submit', async (e) => {
   setMessage($('form-error'), '');
   document.querySelectorAll('#form-kamar [aria-invalid]').forEach((n) => n.removeAttribute('aria-invalid'));
 
-  const foto = $('f-foto').value.split('\n').map((s) => s.trim()).filter(Boolean);
+  const foto   = $('f-foto').value.split('\n').map((s) => s.trim()).filter(Boolean);
   const status = $('f-status').value;
-  let aksi;
-  let pesanSukses;
+  let aksi, pesanSukses;
 
   if (modeForm === 'add') {
-    const tipe = $('f-tipe').value.trim();
+    const tipe  = $('f-tipe').value.trim();
     const lantai = Number($('f-lantai').value);
-    const harga = Number($('f-harga').value);
+    const harga  = Number($('f-harga').value);
 
-    if (!tipe) return tandaiInvalid($('f-tipe'), 'Tipe kamar wajib diisi.');
+    if (!tipe)                                          return tandaiInvalid($('f-tipe'),   'Tipe kamar wajib diisi.');
     if (!Number.isInteger(lantai) || lantai < 1 || lantai > 2) return tandaiInvalid($('f-lantai'), 'Lantai harus berupa angka 1 atau 2.');
-    if (!(harga > 0)) return tandaiInvalid($('f-harga'), 'Harga harus lebih dari 0.');
+    if (!(harga > 0))                                   return tandaiInvalid($('f-harga'),  'Harga harus lebih dari 0.');
 
     const data = { lantai, harga, 'tipe-kamar': tipe, foto };
     if (status) data.status = status;
@@ -318,7 +276,7 @@ $('form-kamar').addEventListener('submit', async (e) => {
   }
 
   const submit = $('f-submit');
-  const label = submit.textContent;
+  const label  = submit.textContent;
   submit.disabled = true;
   submit.textContent = 'Menyimpan...';
   try {
@@ -337,7 +295,7 @@ $('form-kamar').addEventListener('submit', async (e) => {
 /* ---------- Tambah penghuni ---------- */
 const MODE_NOTE = {
   manual: 'Untuk penghuni baru. Tagihan pertama dibuat otomatis dan dilunasi sesuai metode pembayaran.',
-  lama: 'Untuk penghuni yang sudah lebih dulu tinggal. Tanggal mulai boleh tanggal lampau.',
+  lama:   'Untuk penghuni yang sudah lebih dulu tinggal. Tanggal mulai boleh tanggal lampau.',
 };
 
 function bukaPenghuni(room) {
@@ -351,9 +309,7 @@ function bukaPenghuni(room) {
 }
 
 document.querySelectorAll('#form-penghuni input[name="mode"]').forEach((radio) =>
-  radio.addEventListener('change', () => {
-    $('mode-note').textContent = MODE_NOTE[radio.value];
-  })
+  radio.addEventListener('change', () => { $('mode-note').textContent = MODE_NOTE[radio.value]; })
 );
 
 $('form-penghuni').addEventListener('submit', async (e) => {
@@ -363,13 +319,13 @@ $('form-penghuni').addEventListener('submit', async (e) => {
   document.querySelectorAll('#form-penghuni [aria-invalid]').forEach((n) => n.removeAttribute('aria-invalid'));
 
   const f = {
-    nama: $('p-nama'),
-    email: $('p-email'),
-    telp: $('p-telp'),
+    nama:        $('p-nama'),
+    email:       $('p-email'),
+    telp:        $('p-telp'),
     daruratNama: $('p-darurat-nama'),
     daruratTelp: $('p-darurat-telp'),
-    durasi: $('p-durasi'),
-    mulai: $('p-mulai'),
+    durasi:      $('p-durasi'),
+    mulai:       $('p-mulai'),
   };
   const gagal = (input, message) => {
     input.setAttribute('aria-invalid', 'true');
@@ -378,26 +334,26 @@ $('form-penghuni').addEventListener('submit', async (e) => {
   };
 
   const durasi = Number(f.durasi.value);
-  if (!f.nama.value.trim()) return gagal(f.nama, 'Nama lengkap wajib diisi.');
-  if (!emailRegex.test(f.email.value.trim())) return gagal(f.email, 'Format email tidak valid.');
-  if (!phoneRegex.test(f.telp.value.trim())) return gagal(f.telp, 'Nomor telepon tidak valid.');
-  if (!f.daruratNama.value.trim()) return gagal(f.daruratNama, 'Nama kontak darurat wajib diisi.');
+  if (!f.nama.value.trim())                        return gagal(f.nama,        'Nama lengkap wajib diisi.');
+  if (!emailRegex.test(f.email.value.trim()))      return gagal(f.email,       'Format email tidak valid.');
+  if (!phoneRegex.test(f.telp.value.trim()))       return gagal(f.telp,        'Nomor telepon tidak valid.');
+  if (!f.daruratNama.value.trim())                 return gagal(f.daruratNama, 'Nama kontak darurat wajib diisi.');
   if (!phoneRegex.test(f.daruratTelp.value.trim())) return gagal(f.daruratTelp, 'Nomor kontak darurat tidak valid.');
-  if (!Number.isInteger(durasi) || durasi < 1) return gagal(f.durasi, 'Durasi harus berupa angka bulat minimal 1.');
-  if (!f.mulai.value) return gagal(f.mulai, 'Tanggal mulai wajib diisi.');
+  if (!Number.isInteger(durasi) || durasi < 1)     return gagal(f.durasi,      'Durasi harus berupa angka bulat minimal 1.');
+  if (!f.mulai.value)                              return gagal(f.mulai,       'Tanggal mulai wajib diisi.');
 
   const data = {
     dataPengguna: {
-      'nama-lengkap': f.nama.value.trim(),
-      email: f.email.value.trim(),
-      'nomor-telepon': f.telp.value.trim(),
-      'nama-kontak-darurat': f.daruratNama.value.trim(),
+      'nama-lengkap':         f.nama.value.trim(),
+      email:                  f.email.value.trim(),
+      'nomor-telepon':        f.telp.value.trim(),
+      'nama-kontak-darurat':  f.daruratNama.value.trim(),
       'nomor-kontak-darurat': f.daruratTelp.value.trim(),
     },
     dataSewa: {
-      'durasi-bulan': durasi,
-      'tanggal-mulai': `${f.mulai.value}T00:00:00.000Z`,
-      'metode-pembayaran': $('p-metode').value,
+      'durasi-bulan':       durasi,
+      'tanggal-mulai':      `${f.mulai.value}T00:00:00.000Z`,
+      'metode-pembayaran':  $('p-metode').value,
     },
   };
 
@@ -426,9 +382,9 @@ $('form-penghuni').addEventListener('submit', async (e) => {
 /* ---------- Pindah kamar ---------- */
 async function bukaPindah(room) {
   const penghuni = room['penghuni-aktif'];
-  const select = $('pindah-tujuan');
-  const submit = $('pindah-submit');
-  const errorEl = $('pindah-error');
+  const select   = $('pindah-tujuan');
+  const submit   = $('pindah-submit');
+  const errorEl  = $('pindah-error');
 
   dlgDetail.close();
   setMessage(errorEl, '');
@@ -439,7 +395,6 @@ async function bukaPindah(room) {
   dlgPindah.showModal();
 
   try {
-    // Ambil daftar terbaru supaya tidak tergantung filter yang sedang aktif
     const kosong = await getDaftarKamar({ status: 'kosong', diarsipkan: 'false' });
     const tujuan = (Array.isArray(kosong) ? kosong : []).filter((k) => k._id !== room._id);
 
@@ -448,8 +403,9 @@ async function bukaPindah(room) {
       return;
     }
     tujuan.forEach((k) => {
-      const opt = el('option', '', `Kamar ${k['nama-kamar']} (${k['tipe-kamar']}, lantai ${k.lantai}, ${formatRupiah(k.harga ?? 0)})`);
+      const opt = document.createElement('option');
       opt.value = k._id;
+      opt.textContent = `Kamar ${k['nama-kamar']} (${k['tipe-kamar']}, lantai ${k.lantai}, ${formatRupiah(k.harga ?? 0)})`;
       select.append(opt);
     });
     submit.disabled = false;
@@ -460,9 +416,9 @@ async function bukaPindah(room) {
 
 $('form-pindah').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const errorEl = $('pindah-error');
+  const errorEl  = $('pindah-error');
   const penghuni = kamarAktif?.['penghuni-aktif'];
-  const tujuan = $('pindah-tujuan').value; // string _id MongoDB, jangan di-cast ke Number
+  const tujuan   = $('pindah-tujuan').value; // string _id MongoDB
   setMessage(errorEl, '');
 
   if (!penghuni?._id || !tujuan) {
@@ -488,10 +444,7 @@ $('form-pindah').addEventListener('submit', async (e) => {
 
 /* ---------- Dialog umum ---------- */
 document.querySelectorAll('dialog').forEach((dlg) => {
-  // Klik area gelap (di luar kotak dialog) menutup dialog
-  dlg.addEventListener('click', (e) => {
-    if (e.target === dlg) dlg.close();
-  });
+  dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
   dlg.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => dlg.close()));
 });
 
@@ -499,18 +452,22 @@ document.querySelectorAll('dialog').forEach((dlg) => {
 function init() {
   mountAdminNav({
     sidebarEl: $('sidebar'),
-    bottomEl: $('bottom-nav'),
-    active: 'kamar',
-    onLogout: logout,
+    bottomEl:  $('bottom-nav'),
+    active:    'kamar',
+    onLogout:  logout,
   });
   $('logout-mobile').addEventListener('click', logout);
   $('btn-tambah').addEventListener('click', bukaFormTambah);
 
+  // Terapkan class tombol dari komponen button ke semua [data-btn] di halaman
+  hydrateButtons(document);
+
   // Pilihan lantai 1-2
   const lantai = $('filter-lantai');
   for (let i = 1; i <= 2; i += 1) {
-    const opt = el('option', '', `Lantai ${i}`);
+    const opt = document.createElement('option');
     opt.value = String(i);
+    opt.textContent = `Lantai ${i}`;
     lantai.append(opt);
   }
   ['filter-status', 'filter-lantai', 'filter-arsip'].forEach((id) =>

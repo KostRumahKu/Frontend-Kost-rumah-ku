@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Dashboard | KostRumahKu</title>
+  <link rel="icon" href="/public/favicon.ico" />
+  <link rel="stylesheet" href="/src/css/style.css" />
+</head>
+
+<body class="flex h-dvh overflow-hidden bg-[var(--color-cream)] font-[family-name:var(--font-body)] text-[var(--color-ink)]">
+
+  <!-- Sidebar desktop -->
+  <aside id="sidebar" class="hidden shrink-0 md:block"></aside>
+
+  <div class="flex min-w-0 flex-1 flex-col">
+
+    <!-- Header -->
+    <header class="flex shrink-0 items-center justify-between gap-3 border-b border-black/10 bg-[var(--color-surface)] px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] md:px-8 md:py-4">
+      <div>
+        <h1 class="font-[family-name:var(--font-heading)] text-xl font-semibold md:text-2xl">Dashboard</h1>
+        <p id="salam" class="text-sm text-[var(--color-muted)]"></p>
+      </div>
+      <button id="logout-mobile" type="button"
+        class="rounded-lg border border-[var(--color-primary)]/30 px-4 py-2 text-sm font-medium text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/5 md:hidden">
+        Keluar
+      </button>
+    </header>
+
+    <!-- Konten utama -->
+    <main class="min-h-0 flex-1 overflow-y-auto p-4 pb-28 md:p-8 md:pb-8">
+
+      <!-- Error global -->
+      <p id="dash-error" role="alert" class="mb-4 hidden rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800"></p>
+
+      <!-- Banner selamat datang -->
+      <section class="relative mb-6 overflow-hidden rounded-2xl bg-[var(--color-primary)] px-6 py-5 text-[var(--color-cream)] shadow-sm">
+        <div class="relative z-10">
+          <p class="text-xs font-medium uppercase tracking-widest text-[var(--color-cream)]/60">Selamat datang</p>
+          <h2 id="nama-penyewa" class="mt-1 font-[family-name:var(--font-heading)] text-2xl font-semibold md:text-3xl">—</h2>
+          <p class="mt-1 text-sm text-[var(--color-cream)]/80">Kelola & pantau pembayaran dan informasi terbaru kost di sini.</p>
+        </div>
+        <!-- Dekorasi lingkaran -->
+        <div class="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/5" aria-hidden="true"></div>
+        <div class="pointer-events-none absolute -bottom-10 -right-4 h-52 w-52 rounded-full bg-white/5" aria-hidden="true"></div>
+      </section>
+
+      <!-- Shortcut aksi -->
+      <section aria-label="Aksi cepat" class="mb-6 grid grid-cols-3 gap-3">
+        <a href="/penghuni/tagihan"
+          class="group flex flex-col items-center gap-2 rounded-xl border border-[var(--color-primary)]/15 bg-[var(--color-surface)] p-4 text-center shadow-sm transition-all hover:border-[var(--color-primary)]/30 hover:shadow-md">
+          <div class="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] transition-colors group-hover:bg-[var(--color-primary)]/20">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25z" /></svg>
+          </div>
+          <span class="text-xs font-medium text-[var(--color-primary)]">Lihat Tagihan</span>
+        </a>
+
+        <a href="/penghuni/pembayaran"
+          class="group flex flex-col items-center gap-2 rounded-xl border border-[var(--color-primary)]/15 bg-[var(--color-surface)] p-4 text-center shadow-sm transition-all hover:border-[var(--color-primary)]/30 hover:shadow-md">
+          <div class="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] transition-colors group-hover:bg-[var(--color-primary)]/20">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" /></svg>
+          </div>
+          <span class="text-xs font-medium text-[var(--color-primary)]">Unggah Pembayaran</span>
+        </a>
+
+        <a href="/penghuni/pengumuman"
+          class="group flex flex-col items-center gap-2 rounded-xl border border-[var(--color-primary)]/15 bg-[var(--color-surface)] p-4 text-center shadow-sm transition-all hover:border-[var(--color-primary)]/30 hover:shadow-md">
+          <div class="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] transition-colors group-hover:bg-[var(--color-primary)]/20">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 110-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38c-.551.318-1.26.117-1.527-.461a20.845 20.845 0 01-1.44-4.282m3.102.069a18.03 18.03 0 01-.59-4.59c0-1.586.205-3.124.59-4.59m0 9.18a23.848 23.848 0 018.835 2.535M10.34 6.66a23.847 23.847 0 008.835-2.535m0 0A23.74 23.74 0 0018.795 3m.38 1.125a23.91 23.91 0 011.014 5.395m-1.014 8.855c-.118.38-.245.754-.38 1.125m.38-1.125a23.91 23.91 0 001.014-5.395m0-3.46c.495.413.811 1.035.811 1.73 0 .695-.316 1.317-.811 1.73m0-3.46a24.347 24.347 0 010 3.46" /></svg>
+          </div>
+          <span class="text-xs font-medium text-[var(--color-primary)]">Lihat Pengumuman</span>
+        </a>
+      </section>
+
+      <!-- Grid bawah: info sewa + pengumuman terbaru -->
+      <div class="grid gap-4 lg:grid-cols-5">
+
+        <!-- Informasi sewa -->
+        <section aria-labelledby="judul-sewa" class="lg:col-span-3">
+          <div class="rounded-2xl border border-[var(--color-primary)]/10 bg-[var(--color-surface)] shadow-sm">
+            <div class="flex items-center gap-2.5 border-b border-[var(--color-primary)]/10 px-5 py-4">
+              <span class="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955a1.5 1.5 0 012.092 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg>
+              </span>
+              <h2 id="judul-sewa" class="font-[family-name:var(--font-heading)] text-base font-semibold text-[var(--color-primary)]">Informasi Sewa</h2>
+            </div>
+            <div class="p-5">
+              <div id="info-sewa-skeleton" class="animate-pulse space-y-3">
+                <div class="flex gap-4">
+                  <div class="h-28 w-28 shrink-0 rounded-lg bg-[var(--color-primary)]/10"></div>
+                  <div class="flex-1 space-y-2.5 pt-1">
+                    <div class="h-3 w-3/4 rounded bg-[var(--color-primary)]/10"></div>
+                    <div class="h-3 w-1/2 rounded bg-[var(--color-primary)]/10"></div>
+                    <div class="h-3 w-2/3 rounded bg-[var(--color-primary)]/10"></div>
+                    <div class="h-3 w-1/2 rounded bg-[var(--color-primary)]/10"></div>
+                  </div>
+                </div>
+              </div>
+              <div id="info-sewa" class="hidden">
+                <div class="flex flex-col gap-4 sm:flex-row">
+                  <!-- Foto kamar -->
+                  <div id="foto-kamar-wrap" class="hidden h-32 w-full overflow-hidden rounded-xl sm:h-auto sm:w-32 sm:shrink-0">
+                    <img id="foto-kamar" src="" alt="Foto kamar" class="h-full w-full object-cover" />
+                  </div>
+                  <div id="foto-placeholder" class="hidden h-32 w-full items-center justify-center rounded-xl bg-[var(--color-cream)] sm:h-auto sm:w-32 sm:shrink-0">
+                    <svg class="h-10 w-10 text-[var(--color-muted)]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>
+                  </div>
+
+                  <!-- Detail kamar -->
+                  <dl class="flex-1 space-y-2 text-sm">
+                    <div class="flex gap-2">
+                      <dt class="w-32 shrink-0 text-[var(--color-muted)]">Tipe Kamar</dt>
+                      <dd id="sewa-tipe" class="font-medium capitalize">—</dd>
+                    </div>
+                    <div class="flex gap-2">
+                      <dt class="w-32 shrink-0 text-[var(--color-muted)]">Lantai</dt>
+                      <dd id="sewa-lantai" class="font-medium">—</dd>
+                    </div>
+                    <div class="flex gap-2">
+                      <dt class="w-32 shrink-0 text-[var(--color-muted)]">Nomor Kamar</dt>
+                      <dd id="sewa-nomor" class="font-medium">—</dd>
+                    </div>
+                    <div class="flex gap-2">
+                      <dt class="w-32 shrink-0 text-[var(--color-muted)]">Harga</dt>
+                      <dd id="sewa-harga" class="font-medium text-[var(--color-primary)]">—</dd>
+                    </div>
+                    <div class="flex gap-2">
+                      <dt class="w-32 shrink-0 text-[var(--color-muted)]">Periode</dt>
+                      <dd id="sewa-periode" class="font-medium">—</dd>
+                    </div>
+                    <div class="flex gap-2">
+                      <dt class="w-32 shrink-0 text-[var(--color-muted)]">Status</dt>
+                      <dd id="sewa-status" class="font-medium">—</dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+              <p id="info-sewa-kosong" class="hidden text-sm text-[var(--color-muted)]">Belum ada data sewa aktif.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Pengumuman terbaru -->
+        <section aria-labelledby="judul-pengumuman" class="lg:col-span-2">
+          <div class="rounded-2xl border border-[var(--color-primary)]/10 bg-[var(--color-surface)] shadow-sm">
+            <div class="flex items-center justify-between gap-2 border-b border-[var(--color-primary)]/10 px-5 py-4">
+              <div class="flex items-center gap-2.5">
+                <span class="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 110-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38c-.551.318-1.26.117-1.527-.461a20.845 20.845 0 01-1.44-4.282m3.102.069a18.03 18.03 0 01-.59-4.59c0-1.586.205-3.124.59-4.59m0 9.18a23.848 23.848 0 018.835 2.535M10.34 6.66a23.847 23.847 0 008.835-2.535m0 0A23.74 23.74 0 0018.795 3m.38 1.125a23.91 23.91 0 011.014 5.395m-1.014 8.855c-.118.38-.245.754-.38 1.125m.38-1.125a23.91 23.91 0 001.014-5.395m0-3.46c.495.413.811 1.035.811 1.73 0 .695-.316 1.317-.811 1.73m0-3.46a24.347 24.347 0 010 3.46" /></svg>
+                </span>
+                <h2 id="judul-pengumuman" class="font-[family-name:var(--font-heading)] text-base font-semibold text-[var(--color-primary)]">Pengumuman Terbaru</h2>
+              </div>
+              <a href="/penghuni/pengumuman" class="text-xs font-medium text-[var(--color-accent)] hover:underline underline-offset-4">Lihat semua</a>
+            </div>
+            <div id="list-pengumuman" class="divide-y divide-[var(--color-primary)]/5 px-5">
+              <!-- Diisi JS -->
+              <div class="animate-pulse space-y-3 py-4">
+                <div class="flex items-center gap-3">
+                  <div class="h-8 w-8 shrink-0 rounded-full bg-[var(--color-primary)]/10"></div>
+                  <div class="flex-1 space-y-1.5">
+                    <div class="h-3 w-3/4 rounded bg-[var(--color-primary)]/10"></div>
+                    <div class="h-2.5 w-1/2 rounded bg-[var(--color-primary)]/10"></div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3">
+                  <div class="h-8 w-8 shrink-0 rounded-full bg-[var(--color-primary)]/10"></div>
+                  <div class="flex-1 space-y-1.5">
+                    <div class="h-3 w-2/3 rounded bg-[var(--color-primary)]/10"></div>
+                    <div class="h-2.5 w-1/3 rounded bg-[var(--color-primary)]/10"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div><!-- end grid -->
+    </main>
+  </div>
+
+  <!-- Bottom nav mobile -->
+  <div id="bottom-nav" class="md:hidden"></div>
+
+  <script type="module">
+    try {
+      const r = await fetch('/config');
+      window.__ENV__ = await r.json();
+    } catch { window.__ENV__ = {}; }
+    await import('/src/pages/penghuni/dashboard-penghuni.js');
+  </script>
+</body>
+</html>

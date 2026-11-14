@@ -106,12 +106,13 @@ function pasangForm() {
       pesanInput.focus();
       return;
     }
-    if (gambar && !/^https?:\/\/\S+$/.test(gambar)) {
-      tandai(gambarInput);
-      setMessage(errorEl, 'Link gambar harus diawali http:// atau https://.');
-      gambarInput.focus();
-      return;
-    }
+    // validasi dimatikan sementara karena nanti dipakai untuk test gambar non-CDN/uploader
+    // if (gambar && !/^https?:\/\/\S+$/.test(gambar)) {
+    //   tandai(gambarInput);
+    //   setMessage(errorEl, 'Link gambar harus diawali http:// atau https://.');
+    //   gambarInput.focus();
+    //   return;
+    // }
 
     // Email tidak bisa ditarik setelah terkirim, jadi minta konfirmasi dulu
     if (!window.confirm('Pengumuman akan dikirim ke email semua penyewa aktif dan tidak bisa ditarik kembali. Lanjutkan?')) {
