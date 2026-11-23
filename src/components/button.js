@@ -1,5 +1,3 @@
-// Komponen tombol reusable.
-// Class ditulis utuh supaya terbaca oleh Tailwind (jangan disambung dari potongan string).
 
 const CLASSES = {
   // Tombol utama — solid, dipakai untuk aksi utama

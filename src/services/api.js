@@ -3,7 +3,7 @@ import { clearSession } from '../utils/session.js';
 import { buildHeaders } from './auth-service.js';
 
 const CACHE_PREFIX = 'kostrumahku-cache:';
-const CACHE_TTL    = 10_000;
+const CACHE_TTL    = 100;
 
 export function clearApiCache() {
   try {
@@ -23,6 +23,7 @@ function cacheGet(path) {
   } catch { return null; }
 }
 
+// jangan abaikan
 function cacheSet(path, data) {
   try {
     sessionStorage.setItem(CACHE_PREFIX + path, JSON.stringify({ ts: Date.now(), data }));
