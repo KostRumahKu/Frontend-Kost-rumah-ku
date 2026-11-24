@@ -234,6 +234,7 @@ function bukaFormUbah(room) {
   $('f-nama').value  = room['nama-kamar'] ?? '';
   $('f-status').value = room.status ?? '';
   $('f-foto').value  = (room.foto ?? []).join('\n');
+  $('f-fasilitas').value = (room.fasilitas ?? []).join('\n');
   dlgForm.showModal();
 }
 
@@ -249,6 +250,7 @@ $('form-kamar').addEventListener('submit', async (e) => {
   document.querySelectorAll('#form-kamar [aria-invalid]').forEach((n) => n.removeAttribute('aria-invalid'));
 
   const foto   = $('f-foto').value.split('\n').map((s) => s.trim()).filter(Boolean);
+  const fasilitas = $('f-fasilitas').value.split('\n').map((s) => s.trim()).filter(Boolean);
   const status = $('f-status').value;
   let aksi, pesanSukses;
 
@@ -257,11 +259,11 @@ $('form-kamar').addEventListener('submit', async (e) => {
     const lantai = Number($('f-lantai').value);
     const harga  = Number($('f-harga').value);
 
-    if (!tipe)                                          return tandaiInvalid($('f-tipe'),   'Tipe kamar wajib diisi.');
+    if (!tipe)                                          return tandaiInvalid($('f-tipe'),   'Tipe kamar wajib dipilih.');
     if (!Number.isInteger(lantai) || lantai < 1 || lantai > 2) return tandaiInvalid($('f-lantai'), 'Lantai harus berupa angka 1 atau 2.');
     if (!(harga > 0))                                   return tandaiInvalid($('f-harga'),  'Harga harus lebih dari 0.');
 
-    const data = { lantai, harga, 'tipe-kamar': tipe, foto };
+    const data = { lantai, harga, 'tipe-kamar': tipe, foto, fasilitas };
     if (status) data.status = status;
     aksi = () => tambahKamar(data);
     pesanSukses = 'Kamar baru berhasil ditambahkan.';
@@ -269,7 +271,7 @@ $('form-kamar').addEventListener('submit', async (e) => {
     const nama = $('f-nama').value.trim();
     if (!nama) return tandaiInvalid($('f-nama'), 'Nama kamar tidak boleh kosong.');
 
-    const data = { 'nama-kamar': nama, foto };
+    const data = { 'nama-kamar': nama, foto, fasilitas };
     if (status) data.status = status;
     aksi = () => ubahKamar(kamarAktif._id, data);
     pesanSukses = 'Data kamar berhasil diperbarui.';
