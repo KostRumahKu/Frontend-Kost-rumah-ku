@@ -76,51 +76,34 @@ export const rollbackPengajuan = (id) =>
 export const selesaikanPengajuan = (id) =>
   apiFetch(`/api/admin/pengajuan/${id}/selesai`, { method: 'PUT' });
 
-// ── Penyewa ───────────────────────────────────────────────────────────────────
-// params: { status: 'aktif' | 'nonaktif', search }
-export const getDaftarPenyewa = (params) => apiFetch(`/api/admin/penyewa/${toQuery(params)}`);
-export const getDetailPenyewa = (id)     => apiFetch(`/api/admin/penyewa/${id}`);
-// data: { nama-lengkap, email, nomor-telepon, nama-kontak-darurat, nomor-kontak-darurat }
-export const tambahPenyewa    = (data)   => apiFetch('/api/admin/penyewa', { method: 'POST', body: data });
-export const ubahPenyewa      = (id, data) => apiFetch(`/api/admin/penyewa/${id}`, { method: 'PUT', body: data });
-export const hapusPenyewa     = (id)     => apiFetch(`/api/admin/penyewa/${id}`, { method: 'DELETE' });
+// ── Pengguna / penyewa ───────────────────────────────────────────────────────
+// params: { peran: 'penyewa' | 'admin' | ... }
+export const getDaftarPengguna = (params) => apiFetch(`/api/admin/pengguna/${toQuery(params)}`);
+export const getDaftarPenyewa  = () => getDaftarPengguna({ peran: 'penyewa' });
+export const getDetailPengguna = (id) => apiFetch(`/api/admin/pengguna/${id}`);
+// data: { nama-lengkap, nomor-telepon, nama-kontak-darurat, nomor-kontak-darurat }
+export const ubahPenyewa       = (id, data) => apiFetch(`/api/admin/pengguna/${id}`, { method: 'PATCH', body: data });
 
-// ── Tagihan ───────────────────────────────────────────────────────────────────
-// params: { status, 'bulan-tagihan', 'id-pengguna' }
-export const getDaftarTagihan = (params) => apiFetch(`/api/admin/tagihan/${toQuery(params)}`);
-export const getDetailTagihan = (id)     => apiFetch(`/api/admin/tagihan/${id}`);
-// data: { id-pengguna, bulan-tagihan, tanggal-jatuh-tempo, jumlah-tagihan? }
-export const buatTagihan      = (data)   => apiFetch('/api/admin/tagihan', { method: 'POST', body: data });
-// data: { jumlah-tagihan?, tanggal-jatuh-tempo?, status? }
-export const ubahTagihan      = (id, data) => apiFetch(`/api/admin/tagihan/${id}`, { method: 'PUT', body: data });
-export const hapusTagihan     = (id)     => apiFetch(`/api/admin/tagihan/${id}`, { method: 'DELETE' });
-
-// ── Pembayaran ────────────────────────────────────────────────────────────────
-// params: { status: 'menunggu' | 'terverifikasi' | 'ditolak', 'id-pengguna', 'id-tagihan' }
-export const getDaftarPembayaran = (params) => apiFetch(`/api/admin/pembayaran/${toQuery(params)}`);
-export const getDetailPembayaran = (id)     => apiFetch(`/api/admin/pembayaran/${id}`);
-// status: 'terverifikasi' | 'ditolak'. Terverifikasi otomatis melunasi tagihan.
-export const prosesPembayaran = (id, status) =>
-  apiFetch(`/api/admin/pembayaran/${id}/proses`, { method: 'PUT', body: { status } });
+// ── Tagihan & verifikasi pembayaran ───────────────────────────────────────────
+export const getDaftarTagihan = () => apiFetch('/api/admin/tagihan/');
+export const cariTagihan      = (idAtauInvoice) =>
+  apiFetch('/api/admin/tagihan/cari-tagihan', { method: 'POST', body: { 'id-atau-invoice': idAtauInvoice } });
+// status: 'disetujui' | 'ditolak'
+export const validasiTagihan  = (id, status, catatanAdmin = '-') =>
+  apiFetch(`/api/admin/tagihan/${id}/validasi`, { method: 'PUT', body: { 'status-validasi': status, 'catatan-admin': catatanAdmin } });
 
 // ── Booking ───────────────────────────────────────────────────────────────────
-// params: { status: 'menunggu' | 'disetujui' | 'ditolak' }
-export const getDaftarBooking = (params) => apiFetch(`/api/admin/booking/${toQuery(params)}`);
-export const getDetailBooking = (id)     => apiFetch(`/api/admin/booking/${id}`);
-// status: 'disetujui' | 'ditolak'. Backend mengirim email hasil booking ke calon penyewa.
-export const prosesBooking = (id, status, catatanAdmin = '-') =>
-  apiFetch(`/api/admin/booking/${id}/proses`, { method: 'PUT', body: { status, 'catatan-admin': catatanAdmin } });
+export const getDaftarBooking = () => apiFetch('/api/admin/booking/');
+// status: 'setujui' | 'tolak'
+export const validasiBooking  = (id, status, catatanAdmin = '-') =>
+  apiFetch(`/api/admin/booking/${id}/validasi`, { method: 'POST', body: { 'status-validasi': status, 'catatan-admin': catatanAdmin } });
 
-// ── Laporan ───────────────────────────────────────────────────────────────────
-// bulan: jumlah bulan terakhir untuk grafik pemasukan (1-24, default 6)
-export const getLaporan = (bulan) => apiFetch(`/api/admin/laporan/${toQuery({ bulan })}`);
+// ── Keuangan (laporan) ────────────────────────────────────────────────────────
+// { total-pemasukan, total-pengeluaran, saldo }
+export const getRingkasanKeuangan = () => apiFetch('/api/admin/keuangan/ringkasan');
+// [{ tipe-transaksi, kategori, nominal, keterangan, tanggal-transaksi }]
+export const getDaftarTransaksi   = () => apiFetch('/api/admin/keuangan/');
 
 // ── Profil admin ──────────────────────────────────────────────────────────────
-export const getProfilAdmin    = () => apiFetch('/api/admin/profil');
-// data: { nama-lengkap?, nomor-telepon?, nama-kontak-darurat?, nomor-kontak-darurat? }
-export const ubahProfilAdmin   = (data) => apiFetch('/api/admin/profil', { method: 'PUT', body: data });
-export const gantiPasswordAdmin = (passwordLama, passwordBaru) =>
-  apiFetch('/api/admin/profil/ganti-password', {
-    method: 'PUT',
-    body: { 'password-lama': passwordLama, 'password-baru': passwordBaru },
-  });
+export const getProfilAdmin  = () => apiFetch('/api/admin/pengguna/profil-admin');
+export const ubahProfilAdmin = (data) => apiFetch('/api/admin/pengguna/profil-admin', { method: 'PATCH', body: data });

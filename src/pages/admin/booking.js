@@ -7,20 +7,26 @@ import { ICON, tombolAksi, isiTabel, halamanData, renderPaging } from '../../com
 import { requireRole, logout } from '../../utils/auth-guard.js';
 import { $, el, badge, cocok, tampilPesan, urlAman, formatTanggalSaja, formatTanggalRingkas } from '../../utils/dom.js';
 import { formatRupiah } from '../../utils/format.js';
-import { getDaftarBooking, prosesBooking } from '../../services/admin-service.js';
+import { getDaftarBooking, validasiBooking } from '../../services/admin-service.js';
 
 let semua = [];
 let halaman = 1;
 let sedangDiproses = null; // { booking, status }
 
-const STATUS = {
-  menunggu:  { label: 'Menunggu',  warna: 'kuning' },
-  disetujui: { label: 'Disetujui', warna: 'hijau' },
-  ditolak:   { label: 'Ditolak',   warna: 'merah' },
-};
-const badgeStatus = (b) => { const s = STATUS[b.status] ?? { label: b.status, warna: 'abu' }; return badge(s.label, s.warna); };
-const namaCalon = (b) => b.calon?.['nama-lengkap'] ?? '-';
-const namaKamar = (b) => (b.kamar ? `Kamar ${b.kamar['nama-kamar']}` : `Kamar ${b['id-kamar']}`);
+// Bentuk data dari backend: id-pengguna {_id, nama-lengkap, email, nomor-telepon}, id-kamar {_id, nama-kamar, tipe-kamar, lantai, harga},
+// durasi-bulan, status ('berhasil' dst), tanggal-mulai, tanggal-pesan, batas-waktu-bayar, total-tagihan.
+const menunggu = (b) => /menunggu|pending/i.test(b.status ?? '');
+function badgeStatus(b) {
+  const st = b.status ?? '-';
+  if (/berhasil|setuju/i.test(st)) return badge(st === 'berhasil' ? 'Berhasil' : st, 'hijau');
+  if (menunggu(b)) return badge('Menunggu', 'kuning');
+  if (/tolak|gagal|batal|kadaluarsa/i.test(st)) return badge(st, 'merah');
+  return badge(st, 'abu');
+}
+const calon = (b) => (b['id-pengguna'] && typeof b['id-pengguna'] === 'object' ? b['id-pengguna'] : {});
+const kamar = (b) => (b['id-kamar'] && typeof b['id-kamar'] === 'object' ? b['id-kamar'] : null);
+const namaCalon = (b) => calon(b)['nama-lengkap'] ?? '-';
+const namaKamar = (b) => (kamar(b) ? `Kamar ${kamar(b)['nama-kamar'] ?? kamar(b)._id}` : '-');
 
 const formCatatan = FormDialog({
   title: 'Proses booking',
@@ -28,9 +34,9 @@ const formCatatan = FormDialog({
   catatan: 'Hasil booking dikirim ke email calon penyewa sebagai notifikasi.',
   onSubmit: async ({ catatan }) => {
     const { booking, status } = sedangDiproses;
-    await prosesBooking(booking._id, status, catatan || '-');
+    await validasiBooking(booking._id, status, catatan || '-');
     detail.close();
-    tampilPesan('ok', status === 'disetujui'
+    tampilPesan('ok', status === 'setujui'
       ? `Booking ${namaCalon(booking)} disetujui dan notifikasi dikirim.`
       : `Booking ${namaCalon(booking)} ditolak dan notifikasi dikirim.`);
     await muat();
@@ -40,8 +46,8 @@ const formCatatan = FormDialog({
 function mulaiProses(b, status) {
   sedangDiproses = { booking: b, status };
   formCatatan.open({}, {
-    title: `${status === 'disetujui' ? 'Setujui' : 'Tolak'} booking ${namaCalon(b)}`,
-    submitLabel: status === 'disetujui' ? 'Setujui booking' : 'Tolak booking',
+    title: `${status === 'setujui' ? 'Setujui' : 'Tolak'} booking ${namaCalon(b)}`,
+    submitLabel: status === 'setujui' ? 'Setujui booking' : 'Tolak booking',
   });
 }
 
@@ -53,16 +59,15 @@ function bukaDetail(b) {
     el('p', 'mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]', 'Calon penyewa'),
     DaftarInfo([
       ['Nama', namaCalon(b)],
-      ['Email', b.calon?.email],
-      ['Telepon', b.calon?.['nomor-telepon']],
-      ['Kontak darurat', b.calon ? `${b.calon['nama-kontak-darurat'] ?? '-'} (${b.calon['nomor-kontak-darurat'] ?? '-'})` : '-'],
+      ['Email', calon(b).email],
+      ['Telepon', calon(b)['nomor-telepon']],
     ]),
     el('p', 'mb-2 mt-4 text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]', 'Booking'),
     DaftarInfo([
-      ['Kamar', b.kamar ? `${namaKamar(b)} (${b.kamar['tipe-kamar']}, lantai ${b.kamar.lantai})` : namaKamar(b)],
-      ['Harga', b.kamar?.harga ? `${formatRupiah(b.kamar.harga)} / bulan` : '-'],
-      ['Fasilitas', b.kamar?.fasilitas?.length ? b.kamar.fasilitas.join(', ') : '-'],
+      ['Kamar', kamar(b) ? `${namaKamar(b)} (${kamar(b)['tipe-kamar'] ?? '-'}, lantai ${kamar(b).lantai ?? '-'})` : '-'],
+      ['Harga', kamar(b)?.harga ? `${formatRupiah(kamar(b).harga)} / bulan` : '-'],
       ['Durasi', `${b['durasi-bulan']} bulan`],
+      ['Total tagihan', b['total-tagihan'] != null ? formatRupiah(b['total-tagihan']) : '-'],
       ['Mulai sewa', formatTanggalSaja(b['tanggal-mulai'])],
       ['Tanggal pesan', formatTanggalSaja(b['tanggal-pesan'])],
       ['Batas bayar', formatTanggalSaja(b['batas-waktu-bayar'])],
@@ -70,7 +75,7 @@ function bukaDetail(b) {
     ]),
   );
 
-  const bukti = urlAman(b['bukti-pembayaran']);
+  const bukti = urlAman(b['bukti-pembayaran'] ?? b['bukti']);
   if (bukti) {
     const a = el('a', 'mt-3 inline-block text-sm font-medium text-[var(--color-primary)] underline', 'Lihat bukti pembayaran');
     a.href = bukti; a.target = '_blank'; a.rel = 'noopener noreferrer';
@@ -78,11 +83,11 @@ function bukaDetail(b) {
   }
 
   detail.footer.replaceChildren();
-  if (b.status === 'menunggu') {
+  if (menunggu(b)) {
     detail.footer.className = 'mt-5 flex flex-wrap justify-end gap-2 border-t border-[var(--color-primary)]/10 pt-5';
     detail.footer.append(
-      Button({ label: 'Tolak', variant: 'danger', onClick: () => mulaiProses(b, 'ditolak') }),
-      Button({ label: 'Setujui', variant: 'primary', onClick: () => mulaiProses(b, 'disetujui') }),
+      Button({ label: 'Tolak', variant: 'danger', onClick: () => mulaiProses(b, 'tolak') }),
+      Button({ label: 'Setujui', variant: 'primary', onClick: () => mulaiProses(b, 'setujui') }),
     );
   }
   detail.open();
@@ -105,10 +110,10 @@ const KOLOM = [
     render: (b) => {
       const w = el('div', 'flex justify-end gap-1');
       w.append(tombolAksi('Lihat detail booking', ICON.lihat, () => bukaDetail(b)));
-      if (b.status === 'menunggu') {
+      if (menunggu(b)) {
         w.append(
-          tombolAksi('Setujui booking', ICON.terima, () => mulaiProses(b, 'disetujui'), 'text-green-700'),
-          tombolAksi('Tolak booking', ICON.tolak, () => mulaiProses(b, 'ditolak'), 'text-red-700'),
+          tombolAksi('Setujui booking', ICON.terima, () => mulaiProses(b, 'setujui'), 'text-green-700'),
+          tombolAksi('Tolak booking', ICON.tolak, () => mulaiProses(b, 'tolak'), 'text-red-700'),
         );
       }
       return w;
@@ -119,15 +124,15 @@ const KOLOM = [
 function tersaring() {
   const kata = $('cari').value.trim();
   const status = $('filter-status').value;
-  return semua.filter((b) => (!status || b.status === status) && cocok(kata, namaCalon(b), namaKamar(b), b.calon?.email ?? ''));
+  return semua.filter((b) => (!status || (status === 'menunggu' ? menunggu(b) : b.status === status)) && cocok(kata, namaCalon(b), namaKamar(b), calon(b).email ?? ''));
 }
 
 function renderStats() {
-  const hitung = (s) => semua.filter((b) => b.status === s).length;
+  const hitung = (f) => semua.filter(f).length;
   $('stats').replaceChildren(
-    StatCard({ label: 'Menunggu keputusan', value: hitung('menunggu') }),
-    StatCard({ label: 'Disetujui', value: hitung('disetujui') }),
-    StatCard({ label: 'Ditolak', value: hitung('ditolak') }),
+    StatCard({ label: 'Menunggu keputusan', value: hitung(menunggu) }),
+    StatCard({ label: 'Berhasil', value: hitung((b) => /berhasil|setuju/i.test(b.status ?? '')) }),
+    StatCard({ label: 'Ditolak / gagal', value: hitung((b) => /tolak|gagal|batal|kadaluarsa/i.test(b.status ?? '')) }),
     StatCard({ label: 'Total booking', value: semua.length }),
   );
 }
