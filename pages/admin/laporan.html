@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Laporan | KostRumahKu</title>
+  <link rel="icon" href="/public/favicon.ico" />
+
+  <link rel="stylesheet" href="/src/css/style.css" />
+</head>
+
+<body class="flex h-dvh overflow-hidden bg-[var(--color-cream)] font-[family-name:var(--font-body)] text-[var(--color-ink)]">
+
+  <aside id="sidebar" class="hidden shrink-0 md:block"></aside>
+
+  <div class="flex min-w-0 flex-1 flex-col">
+    <header class="flex shrink-0 items-center justify-between gap-3 border-b border-black/10 bg-[var(--color-surface)] px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] md:px-8 md:py-4">
+      <div>
+        <h1 class="font-[family-name:var(--font-heading)] text-xl font-semibold md:text-2xl">Laporan</h1>
+        <p class="text-sm text-[var(--color-muted)]">Pemasukan, kamar, dan status operasional</p>
+      </div>
+      <button id="logout-mobile" type="button" class="rounded-lg border border-[var(--color-primary)]/30 px-4 py-2 text-sm font-medium text-[var(--color-primary)] md:hidden">Keluar</button>
+    </header>
+
+    <main class="min-h-0 flex-1 overflow-y-auto p-4 pb-28 md:p-8 md:pb-8">
+      <p id="page-error" role="alert" class="mb-4 hidden rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800"></p>
+      <p id="page-success" role="status" class="mb-4 hidden rounded-lg bg-green-50 px-4 py-3 text-sm text-green-800"></p>
+
+      <section id="stats" aria-label="Ringkasan laporan" class="grid grid-cols-2 gap-4 lg:grid-cols-4"></section>
+
+      <div class="mt-6 grid gap-6 lg:grid-cols-5">
+        <section aria-labelledby="judul-pemasukan" class="rounded-xl bg-[var(--color-surface)] p-5 shadow-sm md:p-6 lg:col-span-3">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <h2 id="judul-pemasukan" class="font-[family-name:var(--font-heading)] text-lg font-semibold">Pemasukan per bulan</h2>
+            <div>
+              <label for="filter-bulan" class="sr-only">Rentang bulan</label>
+              <select id="filter-bulan" class="rounded-lg border border-[var(--color-primary)]/30 bg-white px-3 py-2 text-sm focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50">
+                <option value="3">3 bulan terakhir</option>
+                <option value="6" selected>6 bulan terakhir</option>
+                <option value="12">12 bulan terakhir</option>
+              </select>
+            </div>
+          </div>
+          <p class="mt-1 text-xs text-[var(--color-muted)]">Hanya pembayaran yang sudah terverifikasi.</p>
+          <div id="grafik" class="mt-4 space-y-2" aria-live="polite"></div>
+        </section>
+
+        <section aria-labelledby="judul-operasional" class="rounded-xl bg-[var(--color-surface)] p-5 shadow-sm md:p-6 lg:col-span-2 lg:self-start">
+          <h2 id="judul-operasional" class="font-[family-name:var(--font-heading)] text-lg font-semibold">Status operasional</h2>
+          <div id="operasional" class="mt-4"></div>
+        </section>
+      </div>
+
+      <section aria-labelledby="judul-penyewa" class="mt-6 rounded-xl bg-[var(--color-surface)] p-5 shadow-sm md:p-6">
+        <h2 id="judul-penyewa" class="font-[family-name:var(--font-heading)] text-lg font-semibold">Laporan pembayaran penyewa</h2>
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full min-w-[44rem] border-collapse text-left text-sm">
+            <thead>
+              <tr class="border-b border-[var(--color-primary)]/30 text-[var(--color-primary)]">
+                <th scope="col" class="px-3 py-2 font-semibold">Penyewa</th>
+                <th scope="col" class="px-3 py-2 font-semibold">Kamar</th>
+                <th scope="col" class="px-3 py-2 font-semibold">Total tagihan</th>
+                <th scope="col" class="px-3 py-2 font-semibold">Sudah dibayar</th>
+                <th scope="col" class="px-3 py-2 font-semibold">Sisa</th>
+                <th scope="col" class="px-3 py-2 font-semibold">Belum lunas</th>
+                <th scope="col" class="px-3 py-2 font-semibold">Menunggak</th>
+              </tr>
+            </thead>
+            <tbody id="tabel-body"><tr><td colspan="7" class="px-3 py-6 text-center text-[var(--color-muted)]">Memuat data...</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Bar bawah (mobile), diisi oleh src/components/admin-nav.js -->
+  <div id="bottom-nav" class="md:hidden"></div>
+
+  <script type="module">
+    try {
+      const r = await fetch('/config');
+      window.__ENV__ = await r.json();
+    } catch { window.__ENV__ = {}; }
+
+    await import('/src/pages/admin/laporan.js');
+  </script>
+</body>
+</html>

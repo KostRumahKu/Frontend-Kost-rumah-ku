@@ -18,7 +18,7 @@ function renderSidebar({ items, brand }) {
       <li>
         <a href="${i.href}" data-nav-id="${i.id}"
           class="nav-link flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-[var(--color-cream)] transition-colors hover:bg-white/10 aria-[current=page]:bg-[var(--color-cream)] aria-[current=page]:text-[var(--color-primary)]">
-          <img src="${ICON_PATH}/${i.icon}" alt="" class="h-5 w-5 shrink-0" />
+          <img src="${ICON_PATH}/${i.icon}" alt="" class="nav-icon h-5 w-5 shrink-0" style="filter:brightness(0) invert(1)" />
           <span class="nav-label truncate">${i.label}</span>
         </a>
       </li>`
@@ -91,7 +91,12 @@ export function mountAdminSidebar({
 
   // Tandai menu aktif
   el.querySelectorAll('[data-nav-id]').forEach((a) => {
-    if (a.dataset.navId === active) a.setAttribute('aria-current', 'page');
+    if (a.dataset.navId === active) {
+      a.setAttribute('aria-current', 'page');
+      // Latar menu aktif krem: ikon dikembalikan ke warna asli (hitam).
+      const ic = a.querySelector('.nav-icon');
+      if (ic) ic.style.filter = 'none';
+    }
   });
   el.querySelectorAll('img').forEach((img) =>
     img.addEventListener('error', () => img.classList.add('invisible'))

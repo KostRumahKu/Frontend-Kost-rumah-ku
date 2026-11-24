@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Pembayaran | KostRumahKu</title>
+  <link rel="icon" href="/public/favicon.ico" />
+
+  <link rel="stylesheet" href="/src/css/style.css" />
+</head>
+
+<body class="flex h-dvh overflow-hidden bg-[var(--color-cream)] font-[family-name:var(--font-body)] text-[var(--color-ink)]">
+
+  <aside id="sidebar" class="hidden shrink-0 md:block"></aside>
+
+  <div class="flex min-w-0 flex-1 flex-col">
+    <header class="flex shrink-0 items-center justify-between gap-3 border-b border-black/10 bg-[var(--color-surface)] px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] md:px-8 md:py-4">
+      <div>
+        <h1 class="font-[family-name:var(--font-heading)] text-xl font-semibold md:text-2xl">Pembayaran</h1>
+        <p id="jumlah" class="text-sm text-[var(--color-muted)]"></p>
+      </div>
+      <button id="logout-mobile" type="button" class="rounded-lg border border-[var(--color-primary)]/30 px-4 py-2 text-sm font-medium text-[var(--color-primary)] md:hidden">Keluar</button>
+    </header>
+
+    <main class="min-h-0 flex-1 overflow-y-auto p-4 pb-28 md:p-8 md:pb-8">
+      <p id="page-error" role="alert" class="mb-4 hidden rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800"></p>
+      <p id="page-success" role="status" class="mb-4 hidden rounded-lg bg-green-50 px-4 py-3 text-sm text-green-800"></p>
+      <section id="stats" aria-label="Ringkasan" class="grid grid-cols-2 gap-4 lg:grid-cols-4"></section>
+
+      <section aria-labelledby="judul-daftar" class="mt-6 rounded-xl bg-[var(--color-surface)] p-4 shadow-sm md:p-6">
+        <div class="flex flex-wrap items-end gap-3">
+          <h2 id="judul-daftar" class="mr-auto font-[family-name:var(--font-heading)] text-xl font-semibold">Daftar Pembayaran</h2>
+          
+        </div>
+
+        <div class="mt-4 flex flex-wrap items-end gap-3">
+          <div class="min-w-48 flex-1">
+            <label for="cari" class="mb-1 block text-xs font-medium text-[var(--color-muted)]">Cari</label>
+            <input id="cari" type="search" placeholder="No. tagihan, penyewa, atau kamar" autocomplete="off" class="w-full rounded-lg border border-[var(--color-primary)]/30 bg-white px-3 py-2 text-sm focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50" />
+          </div>
+          <div>
+            <label for="filter-status" class="mb-1 block text-xs font-medium text-[var(--color-muted)]">Status pembayaran</label>
+            <select id="filter-status" class="rounded-lg border border-[var(--color-primary)]/30 bg-white px-3 py-2 text-sm focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50"><option value="">Semua</option><option value="menunggu">Menunggu verifikasi</option><option value="terverifikasi">Terverifikasi</option><option value="ditolak">Ditolak</option></select>
+          </div>
+          <div>
+            <label for="filter-penyewa" class="mb-1 block text-xs font-medium text-[var(--color-muted)]">Penyewa (histori)</label>
+            <select id="filter-penyewa" class="rounded-lg border border-[var(--color-primary)]/30 bg-white px-3 py-2 text-sm focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50"><option value="">Semua penyewa</option></select>
+          </div>
+        </div>
+
+        <div class="mt-5 overflow-x-auto">
+          <table class="w-full min-w-[50rem] border-collapse text-left text-sm">
+            <thead>
+              <tr class="border-b border-[var(--color-primary)]/30 text-[var(--color-primary)]"><th scope="col" class="px-3 py-2 font-semibold">Tgl bayar</th><th scope="col" class="px-3 py-2 font-semibold">Penyewa</th><th scope="col" class="px-3 py-2 font-semibold">Kamar</th><th scope="col" class="px-3 py-2 font-semibold">No. Tagihan</th><th scope="col" class="px-3 py-2 font-semibold">Jumlah</th><th scope="col" class="px-3 py-2 font-semibold">Status</th><th scope="col" class="px-3 py-2 font-semibold text-right">Aksi</th></tr>
+            </thead>
+            <tbody id="tabel-body" aria-live="polite">
+              <tr><td colspan="7" class="px-3 py-6 text-center text-[var(--color-muted)]">Memuat data...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <nav id="paging" aria-label="Halaman" class="mt-5 flex flex-wrap items-center justify-center gap-1 text-sm"></nav>
+      </section>
+    </main>
+  </div>
+
+  <!-- Bar bawah (mobile), diisi oleh src/components/admin-nav.js -->
+  <div id="bottom-nav" class="md:hidden"></div>
+
+  <script type="module">
+    try {
+      const r = await fetch('/config');
+      window.__ENV__ = await r.json();
+    } catch { window.__ENV__ = {}; }
+
+    await import('/src/pages/admin/pembayaran.js');
+  </script>
+</body>
+</html>
