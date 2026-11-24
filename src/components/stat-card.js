@@ -16,7 +16,7 @@ export function StatCard({ label, value, note = '' }) {
   l.textContent = label;
 
   const v = document.createElement('p');
-  v.className = 'mt-2 font-[family-name:var(--font-heading)] text-3xl font-semibold text-[var(--color-primary)]';
+  v.className = 'mt-2 break-words font-[family-name:var(--font-heading)] text-2xl font-semibold sm:text-3xl text-[var(--color-primary)]';
   v.textContent = value;
 
   const n = document.createElement('p');

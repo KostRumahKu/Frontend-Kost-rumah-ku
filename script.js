@@ -69,6 +69,12 @@ app.get("/auth/sandi-baru",     (_req, res) => res.sendFile(path.join(__dirname,
 app.get("/admin/dashboard-admin", (_req, res) => res.sendFile(path.join(__dirname, "pages", "admin", "dashboard-admin.html")));
 app.get("/admin/kamar",           (_req, res) => res.sendFile(path.join(__dirname, "pages", "admin", "kamar.html")));
 app.get("/admin/pengumuman",      (_req, res) => res.sendFile(path.join(__dirname, "pages", "admin", "pengumuman.html")));
+app.get("/admin/penghuni",        (_req, res) => res.sendFile(path.join(__dirname, "pages", "admin", "penghuni.html")));
+app.get("/admin/tagihan",         (_req, res) => res.sendFile(path.join(__dirname, "pages", "admin", "tagihan.html")));
+app.get("/admin/pembayaran",      (_req, res) => res.sendFile(path.join(__dirname, "pages", "admin", "pembayaran.html")));
+app.get("/admin/booking",         (_req, res) => res.sendFile(path.join(__dirname, "pages", "admin", "booking.html")));
+app.get("/admin/laporan",         (_req, res) => res.sendFile(path.join(__dirname, "pages", "admin", "laporan.html")));
+app.get("/admin/profile",         (_req, res) => res.sendFile(path.join(__dirname, "pages", "admin", "profile.html")));
 
 // Penyewa
 app.get("/dashboard-penghuni",    (_req, res) => res.sendFile(path.join(__dirname, "pages", "penghuni", "dashboard-penghuni.html")));

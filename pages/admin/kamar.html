@@ -82,7 +82,11 @@
 
         <div data-only="add">
           <label for="f-tipe" class="mb-1.5 block text-sm font-medium">Tipe kamar</label>
-          <input id="f-tipe" type="text" autocomplete="off" placeholder="contoh: ekonomi" class="w-full rounded-lg border border-[var(--color-primary)]/30 bg-white px-3 py-2.5 text-sm placeholder:text-[var(--color-muted)]/70 focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50 aria-[invalid=true]:border-red-700" />
+          <select id="f-tipe" class="w-full rounded-lg border border-[var(--color-primary)]/30 bg-white px-3 py-2.5 text-sm focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50 aria-[invalid=true]:border-red-700">
+            <option value="">Pilih tipe</option>
+            <option value="teratai">Teratai</option>
+            <option value="tulip">Tulip</option>
+          </select>
         </div>
 
         <div data-only="add" class="grid grid-cols-2 gap-4">
@@ -105,6 +109,11 @@
             <option value="terisi">Terisi</option>
             <option value="perbaikan">Perbaikan</option>
           </select>
+        </div>
+
+        <div>
+          <label for="f-fasilitas" class="mb-1.5 block text-sm font-medium">Fasilitas <span class="font-normal text-[var(--color-muted)]">(opsional, satu fasilitas per baris)</span></label>
+          <textarea id="f-fasilitas" rows="3" placeholder="Contoh:&#10;AC&#10;Kamar mandi dalam&#10;Kasur" class="w-full rounded-lg border border-[var(--color-primary)]/30 bg-white px-3 py-2.5 text-sm placeholder:text-[var(--color-muted)]/70 focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/50"></textarea>
         </div>
 
         <div>
