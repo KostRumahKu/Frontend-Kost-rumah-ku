@@ -126,6 +126,10 @@ async function muatTagihan() {
         btnBayar.href = urlPembayaran(tagihanAktif);
         btnBayar.classList.remove('hidden');
         btnBayar.classList.add('inline-flex');
+      } else if (key === 'lunas') {
+        btnBayar.href = '/penghuni/pembayaran';
+        btnBayar.classList.remove('hidden');
+        btnBayar.classList.add('inline-flex');
       } else {
         btnBayar.classList.add('hidden');
         btnBayar.classList.remove('inline-flex');

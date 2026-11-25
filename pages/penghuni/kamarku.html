@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Kamarku | KostRumahKu</title>
+  <link rel="icon" href="/public/favicon.ico" />
+  <link rel="stylesheet" href="/src/css/style.css" />
+</head>
+
+<body class="flex h-dvh overflow-hidden bg-[var(--color-cream)] font-[family-name:var(--font-body)] text-[var(--color-ink)]">
+
+  <aside id="sidebar" class="hidden shrink-0 md:block"></aside>
+
+  <div class="flex min-w-0 flex-1 flex-col">
+    <header class="flex shrink-0 items-center justify-between gap-3 border-b border-black/10 bg-[var(--color-surface)] px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] md:px-8 md:py-4">
+      <div>
+        <h1 class="font-[family-name:var(--font-heading)] text-xl font-semibold md:text-2xl">Kamarku</h1>
+        <p class="text-sm text-[var(--color-muted)]">Informasi kamar yang kamu tempati</p>
+      </div>
+      <button id="logout-mobile" type="button"
+        class="rounded-lg border border-[var(--color-primary)]/30 px-4 py-2 text-sm font-medium text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/5 md:hidden">
+        Keluar
+      </button>
+    </header>
+
+    <main class="flex min-h-0 flex-1 items-center justify-center p-4 pb-28 md:p-8">
+      <div class="flex flex-col items-center gap-3 text-center">
+        <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+          <svg class="h-8 w-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955a1.5 1.5 0 012.092 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
+          </svg>
+        </div>
+        <p class="font-[family-name:var(--font-heading)] text-lg font-medium">Segera Hadir</p>
+        <p class="max-w-xs text-sm text-[var(--color-muted)]">Halaman informasi kamar sedang dalam pengembangan.</p>
+      </div>
+    </main>
+  </div>
+
+  <div id="bottom-nav" class="md:hidden"></div>
+
+  <script type="module">
+    try { const r = await fetch('/config'); window.__ENV__ = await r.json(); }
+    catch { window.__ENV__ = {}; }
+    await import('/src/pages/penghuni/kamarku.js');
+  </script>
+</body>
+</html>

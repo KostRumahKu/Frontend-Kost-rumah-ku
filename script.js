@@ -78,6 +78,12 @@ app.get("/admin/profile",         (_req, res) => res.sendFile(path.join(__dirnam
 
 // Penyewa
 app.get("/dashboard-penghuni",    (_req, res) => res.sendFile(path.join(__dirname, "pages", "penghuni", "dashboard-penghuni.html")));
+app.get("/penghuni/tagihan",      (_req, res) => res.sendFile(path.join(__dirname, "pages", "penghuni", "tagihan.html")));
+app.get("/penghuni/pembayaran",   (_req, res) => res.sendFile(path.join(__dirname, "pages", "penghuni", "pembayaran.html")));
+app.get("/penghuni/kamarku",      (_req, res) => res.sendFile(path.join(__dirname, "pages", "penghuni", "kamarku.html")));
+app.get("/penghuni/pengumuman",   (_req, res) => res.sendFile(path.join(__dirname, "pages", "penghuni", "pengumuman.html")));
+app.get("/penghuni/info-kost",    (_req, res) => res.sendFile(path.join(__dirname, "pages", "penghuni", "info-kost.html")));
+app.get("/penghuni/profil",       (_req, res) => res.sendFile(path.join(__dirname, "pages", "penghuni", "profil.html")));
 
 app.listen(PORT, () => {
   console.log(`http://localhost:${PORT}`);

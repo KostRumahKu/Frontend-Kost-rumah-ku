@@ -3,11 +3,12 @@ const ICON_PATH  = '/public/icons';
 const STORAGE_KEY = 'penghuni-sidebar-collapsed';
 
 export const penghuniItems = [
-  { id: 'dashboard',  label: 'Dashboard',  icon: 'home.webp',        href: '/dashboard-penghuni' },
-  { id: 'tagihan',    label: 'Tagihan',     icon: 'facilities.webp',  href: '/penghuni/tagihan' },
-  { id: 'pembayaran', label: 'Pembayaran',  icon: 'rooms.webp',       href: '/penghuni/pembayaran' },
-  { id: 'pengumuman', label: 'Pengumuman',  icon: 'testimonial.webp', href: '/penghuni/pengumuman' },
-  { id: 'profil',     label: 'Profil',      icon: 'contact.webp',     href: '/penghuni/profil' },
+  { id: 'dashboard',  label: 'Dashboard',      icon: 'home.webp',        href: '/dashboard-penghuni' },
+  { id: 'tagihan',    label: 'Tagihan',         icon: 'facilities.webp',  href: '/penghuni/tagihan' },
+  { id: 'kamarku',    label: 'Kamarku',         icon: 'rooms.webp',       href: '/penghuni/kamarku' },
+  { id: 'pengumuman', label: 'Pengumuman',      icon: 'testimonial.webp', href: '/penghuni/pengumuman' },
+  { id: 'infokost',   label: 'Informasi Kost',  icon: 'location.webp',    href: '/penghuni/info-kost' },
+  { id: 'profil',     label: 'Profil',          icon: 'contact.webp',     href: '/penghuni/profil' },
 ];
 
 const logo =

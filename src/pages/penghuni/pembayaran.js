@@ -2,7 +2,9 @@ import { mountPenghuniNav } from '../../components/penghuni-nav.js';
 import { requireRole, logout } from '../../utils/auth-guard.js';
 import { $, tampilPesan, urlAman, formatTanggalSaja } from '../../utils/dom.js';
 import {
+  getDashboardPenyewa,
   getTagihan,
+  mintaTagihan,
   kirimPembayaran,
   getDaftarRekening,
 } from '../../services/penyewa-service.js';
@@ -10,8 +12,11 @@ import {
 const sesi = requireRole('penyewa');
 if (sesi) init();
 
+let semuaTagihan = [];
 let tagihanBelumLunas = [];
 let rekeningList = [];
+let modeBulanBerikutnya = false;
+let hargaSewaPerBulan = 0;
 
 const getIdTagihan = (t) => t?._id ?? t?.id ?? '';
 
@@ -38,7 +43,6 @@ function init() {
   });
   $('logout-mobile').addEventListener('click', logout);
 
-  // Baca jumlah bulan awal dari query (?bulan=2)
   const q = new URLSearchParams(window.location.search);
   const prefBulan = Number(q.get('bulan'));
   if (Number.isInteger(prefBulan) && prefBulan >= 1 && prefBulan <= 24) {
@@ -71,17 +75,28 @@ function init() {
 }
 
 function tagihanTerpilih() {
+  if (modeBulanBerikutnya) return null;
   const id = $('pilih-tagihan').value;
   return tagihanBelumLunas.find((t) => getIdTagihan(t) === id) ?? tagihanBelumLunas[0] ?? null;
 }
 
 function perbaruiRingkasan() {
+  const bulan = Math.max(1, Math.min(24, Number($('jumlah-bulan').value) || 1));
+
+  if (modeBulanBerikutnya) {
+    const perBulan = hargaSewaPerBulan;
+    $('sum-nomor').textContent    = 'Dibuat otomatis';
+    $('sum-periode').textContent  = 'Bulan berikutnya';
+    $('sum-tempo').textContent    = '-';
+    $('sum-perbulan').textContent = perBulan ? formatRupiah2(perBulan) : '-';
+    $('sum-total').textContent    = perBulan ? formatRupiah2(perBulan * bulan) : '-';
+    return;
+  }
+
   const t = tagihanTerpilih();
   if (!t) return;
 
-  const bulan = Math.max(1, Math.min(24, Number($('jumlah-bulan').value) || 1));
   const perBulan = Number(t['jumlah-tagihan'] ?? 0);
-
   $('sum-nomor').textContent    = t['nomor-tagihan'] ?? getIdTagihan(t) ?? '-';
   $('sum-periode').textContent  = t['bulan-tagihan'] ?? '-';
   $('sum-tempo').textContent    = formatTanggalSaja(t['tanggal-jatuh-tempo']);
@@ -93,40 +108,53 @@ async function muatData() {
   const prefId = new URLSearchParams(window.location.search).get('id') ?? '';
 
   try {
-    const [dataTagihan, dataRekening] = await Promise.all([
+    const [dataTagihan, dataRekening, dataDashboard] = await Promise.all([
       getTagihan(),
       getDaftarRekening().catch(() => []),
+      getDashboardPenyewa().catch(() => null),
     ]);
 
     const rawList = Array.isArray(dataTagihan)
       ? dataTagihan
       : (Array.isArray(dataTagihan?.tagihan) ? dataTagihan.tagihan : []);
 
+    semuaTagihan = rawList;
     tagihanBelumLunas = rawList.filter((t) => bisaDibayar(t.status));
     rekeningList = Array.isArray(dataRekening)
       ? dataRekening
       : (Array.isArray(dataRekening?.rekening) ? dataRekening.rekening : []);
 
+    hargaSewaPerBulan = Number(
+      dataDashboard?.kamar?.harga ??
+      semuaTagihan[0]?.['jumlah-tagihan'] ??
+      0
+    );
+
     $('pay-skeleton').classList.add('hidden');
-
-    if (tagihanBelumLunas.length === 0) {
-      $('pay-konten').classList.add('hidden');
-      $('pay-kosong').classList.remove('hidden');
-      return;
-    }
-
     $('pay-kosong').classList.add('hidden');
 
     const select = $('pilih-tagihan');
-    select.replaceChildren(
-      ...tagihanBelumLunas.map((t) => {
-        const label = `${t['bulan-tagihan'] ?? 'Tagihan'} — ${formatRupiah2(t['jumlah-tagihan'])}`;
-        return new Option(label, getIdTagihan(t));
-      })
-    );
 
-    if (prefId && tagihanBelumLunas.some((t) => getIdTagihan(t) === prefId)) {
-      select.value = prefId;
+    if (tagihanBelumLunas.length > 0) {
+      modeBulanBerikutnya = false;
+      select.disabled = false;
+      select.replaceChildren(
+        ...tagihanBelumLunas.map((t) => {
+          const label = `${t['bulan-tagihan'] ?? 'Tagihan'} — ${formatRupiah2(t['jumlah-tagihan'])}`;
+          return new Option(label, getIdTagihan(t));
+        })
+      );
+
+      if (prefId && tagihanBelumLunas.some((t) => getIdTagihan(t) === prefId)) {
+        select.value = prefId;
+      }
+    } else {
+      // Semua tagihan saat ini sudah lunas → bayar bulan berikutnya di muka
+      modeBulanBerikutnya = true;
+      const labelHarga = hargaSewaPerBulan ? ` — ${formatRupiah2(hargaSewaPerBulan)} / bulan` : '';
+      select.replaceChildren(new Option(`Tagihan Bulan Berikutnya${labelHarga}`, '__NEXT__'));
+      select.value = '__NEXT__';
+      select.disabled = true;
     }
 
     perbaruiRingkasan();
@@ -213,16 +241,10 @@ async function submitPembayaran(e) {
   e.preventDefault();
   tampilPesan('', '');
 
-  const t = tagihanTerpilih();
-  const idTagihan = getIdTagihan(t);
   const jumlahBulanNum = Number($('jumlah-bulan').value);
   const idRekening = document.querySelector('input[name="id-rekening"]:checked')?.value ?? '';
   const buktiUrl = $('bukti-url').value.trim();
 
-  if (!idTagihan) {
-    tampilPesan('error', 'Tagihan dasar belum dipilih.');
-    return;
-  }
   if (!Number.isInteger(jumlahBulanNum) || jumlahBulanNum < 1 || jumlahBulanNum > 24) {
     tampilPesan('error', 'Jumlah bulan harus berupa angka antara 1 sampai 24.');
     return;
@@ -241,6 +263,34 @@ async function submitPembayaran(e) {
   btn.textContent = 'Mengirim pembayaran...';
 
   try {
+    let idTagihan = '';
+
+    if (modeBulanBerikutnya) {
+      // Generate tagihan dasar bulan berikutnya terlebih dahulu
+      const resMinta = await mintaTagihan();
+      idTagihan =
+        resMinta?._id ??
+        resMinta?.id ??
+        resMinta?.['id-tagihan'] ??
+        resMinta?.tagihan?._id ??
+        resMinta?.tagihan?.id ??
+        '';
+
+      // Fallback: ambil dari daftar tagihan terbaru bila response tidak menyertakan id langsung
+      if (!idTagihan) {
+        const latest = await getTagihan();
+        const latestList = Array.isArray(latest) ? latest : (Array.isArray(latest?.tagihan) ? latest.tagihan : []);
+        const baru = latestList.find((item) => bisaDibayar(item.status));
+        idTagihan = getIdTagihan(baru);
+      }
+    } else {
+      idTagihan = getIdTagihan(tagihanTerpilih());
+    }
+
+    if (!idTagihan) {
+      throw new Error('Gagal mendapatkan ID tagihan dasar untuk pembayaran.');
+    }
+
     await kirimPembayaran({
       'id-tagihan-Dasar': idTagihan,
       'jumlah-bulan': String(jumlahBulanNum),

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Informasi Kost | KostRumahKu</title>
+  <link rel="icon" href="/public/favicon.ico" />
+  <link rel="stylesheet" href="/src/css/style.css" />
+</head>
+
+<body class="flex h-dvh overflow-hidden bg-[var(--color-cream)] font-[family-name:var(--font-body)] text-[var(--color-ink)]">
+
+  <aside id="sidebar" class="hidden shrink-0 md:block"></aside>
+
+  <div class="flex min-w-0 flex-1 flex-col">
+    <header class="flex shrink-0 items-center justify-between gap-3 border-b border-black/10 bg-[var(--color-surface)] px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] md:px-8 md:py-4">
+      <div>
+        <h1 class="font-[family-name:var(--font-heading)] text-xl font-semibold md:text-2xl">Informasi Kost</h1>
+        <p class="text-sm text-[var(--color-muted)]">Detail dan fasilitas kost</p>
+      </div>
+      <button id="logout-mobile" type="button"
+        class="rounded-lg border border-[var(--color-primary)]/30 px-4 py-2 text-sm font-medium text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/5 md:hidden">
+        Keluar
+      </button>
+    </header>
+
+    <main class="flex min-h-0 flex-1 items-center justify-center p-4 pb-28 md:p-8">
+      <div class="flex flex-col items-center gap-3 text-center">
+        <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+          <svg class="h-8 w-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+          </svg>
+        </div>
+        <p class="font-[family-name:var(--font-heading)] text-lg font-medium">Segera Hadir</p>
+        <p class="max-w-xs text-sm text-[var(--color-muted)]">Halaman informasi kost sedang dalam pengembangan.</p>
+      </div>
+    </main>
+  </div>
+
+  <div id="bottom-nav" class="md:hidden"></div>
+
+  <script type="module">
+    try { const r = await fetch('/config'); window.__ENV__ = await r.json(); }
+    catch { window.__ENV__ = {}; }
+    await import('/src/pages/penghuni/info-kost.js');
+  </script>
+</body>
+</html>
