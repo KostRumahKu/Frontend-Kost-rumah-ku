@@ -1,6 +1,7 @@
 import { apiFetch } from './api.js';
 import { API_BASE_URL } from '../utils/config.js';
-import { buildHeaders } from './auth-service.js';
+import { getToken, clearSession } from '../utils/session.js';
+import { clearApiCache } from './api.js';
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 export const getDashboardPenyewa = () => apiFetch('/api/penyewa/dashboard');
@@ -8,7 +9,7 @@ export const getDashboardPenyewa = () => apiFetch('/api/penyewa/dashboard');
 // ── Tagihan & Pembayaran ──────────────────────────────────────────────────────
 export const getTagihan = () => apiFetch('/api/penyewa/tagihan');
 
-// Generate tagihan dasar bulan berikutnya (dipanggil otomatis saat bayar di muka)
+// Trigger backend untuk men-generate tagihan bulan berikutnya
 export const mintaTagihan = () =>
   apiFetch('/api/penyewa/permintaan-tagihan', { method: 'POST' });
 
@@ -21,35 +22,127 @@ export const kirimPembayaran = (data) =>
 export const getDaftarRekening = () =>
   apiFetch('/api/public/rekening', { auth: false });
 
-// Generate PDF tagihan (mendukung respon blob PDF langsung maupun JSON berisi URL)
+function cariUrlPdf(obj) {
+  if (!obj) return null;
+  if (typeof obj === 'string') {
+    const s = obj.trim();
+    if (/^(https?:\/\/|\/|data:application\/pdf)/i.test(s)) return s;
+    return null;
+  }
+  if (typeof obj !== 'object') return null;
+
+  const keys = [
+    'url', 'pdfUrl', 'pdf-url', 'pdf_url', 'pdf',
+    'file', 'fileUrl', 'file-url', 'link',
+    'downloadUrl', 'download-url', 'invoiceUrl', 'invoice-url',
+  ];
+  for (const k of keys) {
+    if (typeof obj[k] === 'string' && obj[k].trim()) {
+      const found = cariUrlPdf(obj[k]);
+      if (found) return found;
+    }
+  }
+  if (obj.data && obj.data !== obj) {
+    const nested = cariUrlPdf(obj.data);
+    if (nested) return nested;
+  }
+  return null;
+}
+
+function cariBase64Pdf(obj) {
+  if (!obj || typeof obj !== 'object') return null;
+  const keys = ['base64', 'pdfBase64', 'pdf-base64', 'fileBase64', 'buffer'];
+  for (const k of keys) {
+    if (typeof obj[k] === 'string' && obj[k].length > 50) return obj[k];
+  }
+  if (obj.data && obj.data !== obj) return cariBase64Pdf(obj.data);
+  return null;
+}
+
+function base64ToPdfBlob(b64) {
+  const clean = b64.replace(/^data:application\/pdf;base64,/i, '').replace(/\s/g, '');
+  const bin = atob(clean);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new Blob([bytes], { type: 'application/pdf' });
+}
+
+// Generate PDF tagihan (tangani blob PDF, base64, maupun JSON berisi URL)
 export async function generateTagihanPdf(idTagihan) {
+  const url = `${API_BASE_URL()}/api/penyewa/generate/${encodeURIComponent(idTagihan)}/pdf`;
+  const headers = { Accept: 'application/pdf, application/json' };
+  const token = getToken();
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const doRequest = (method) => fetch(url, { method, headers });
+
   let res;
   try {
-    res = await fetch(`${API_BASE_URL()}/api/penyewa/generate/${encodeURIComponent(idTagihan)}/pdf`, {
-      method: 'POST',
-      headers: buildHeaders(true),
-    });
+    res = await doRequest('POST');
+    if (res.status === 404 || res.status === 405) {
+      res = await doRequest('GET');
+    }
   } catch {
     throw new Error('Tidak dapat terhubung ke server. Periksa koneksi internetmu.');
   }
 
-  const ct = res.headers.get('content-type') ?? '';
+  if (res.status === 401) {
+    clearApiCache();
+    clearSession();
+    window.location.replace('/auth/login');
+    throw new Error('Sesi berakhir. Silakan masuk lagi.');
+  }
+
+  const ct = (res.headers.get('content-type') ?? '').toLowerCase();
+  const buf = await res.arrayBuffer();
+  const bytes = new Uint8Array(buf);
+  const isPdfSignature =
+    bytes.length >= 4 &&
+    bytes[0] === 0x25 && // %
+    bytes[1] === 0x50 && // P
+    bytes[2] === 0x44 && // D
+    bytes[3] === 0x46;   // F
+
   if (!res.ok) {
-    const errJson = await res.json().catch(() => null);
-    throw new Error(errJson?.pesan ?? errJson?.message ?? 'Gagal membuat PDF tagihan.');
+    let pesan = `Gagal membuat PDF tagihan (HTTP ${res.status}).`;
+    try {
+      const txt = new TextDecoder('utf-8').decode(bytes);
+      const errJson = JSON.parse(txt);
+      pesan = errJson?.pesan ?? errJson?.message ?? pesan;
+    } catch { /* bukan JSON */ }
+    throw new Error(pesan);
   }
 
-  if (ct.includes('application/pdf') || ct.includes('octet-stream')) {
-    const blob = await res.blob();
-    return { type: 'blob', blob };
+  if (isPdfSignature || ct.includes('application/pdf') || ct.includes('octet-stream')) {
+    return { type: 'blob', blob: new Blob([buf], { type: 'application/pdf' }) };
   }
 
-  const hasil = await res.json().catch(() => null);
+  let hasil = null;
+  try {
+    const txt = new TextDecoder('utf-8').decode(bytes);
+    hasil = JSON.parse(txt);
+  } catch {
+    throw new Error('Format respon PDF dari server tidak dikenali.');
+  }
+
   if (hasil?.status && hasil.status !== 'sukses') {
     throw new Error(hasil?.pesan ?? hasil?.message ?? 'Gagal membuat PDF tagihan.');
   }
-  const url = hasil?.data?.url ?? hasil?.data?.pdfUrl ?? hasil?.data?.pdf ?? (typeof hasil?.data === 'string' ? hasil.data : null);
-  return { type: 'json', url, data: hasil?.data ?? hasil };
+
+  const b64 = cariBase64Pdf(hasil);
+  if (b64) {
+    return { type: 'blob', blob: base64ToPdfBlob(b64) };
+  }
+
+  const pdfUrl = cariUrlPdf(hasil);
+  if (pdfUrl) {
+    if (pdfUrl.startsWith('data:application/pdf;base64,')) {
+      return { type: 'blob', blob: base64ToPdfBlob(pdfUrl) };
+    }
+    return { type: 'url', url: pdfUrl };
+  }
+
+  throw new Error('Server tidak mengembalikan file atau tautan PDF.');
 }
 
 // ── Pengumuman ────────────────────────────────────────────────────────────────

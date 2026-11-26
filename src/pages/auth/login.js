@@ -7,18 +7,10 @@ const REDIRECT = '/dashboard-penghuni';
 const form       = document.getElementById('login-form');
 const emailInput = document.getElementById('email');
 const sandiInput = document.getElementById('kata-sandi');
-const toggleBtn  = document.getElementById('toggle-sandi');
 const submitBtn  = document.getElementById('submit-btn');
 const formError  = document.getElementById('form-error');
 const emailError = document.getElementById('email-error');
 const sandiError = document.getElementById('sandi-error');
-
-toggleBtn.addEventListener('click', () => {
-  const show = sandiInput.type === 'password';
-  sandiInput.type       = show ? 'text' : 'password';
-  toggleBtn.textContent = show ? 'Sembunyikan' : 'Tampilkan';
-  toggleBtn.setAttribute('aria-pressed', String(show));
-});
 
 function showError(el, msg) { el.textContent = msg; el.classList.remove('hidden'); }
 function clearError(el)     { el.textContent = '';  el.classList.add('hidden');    }

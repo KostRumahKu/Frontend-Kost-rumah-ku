@@ -4,6 +4,7 @@ import { formatRupiah } from '../../utils/format.js';
 import { $, tampilPesan, urlAman, pasangDialog } from '../../utils/dom.js';
 import {
   getTagihan,
+  mintaTagihan,
   generateTagihanPdf,
 } from '../../services/penyewa-service.js';
 
@@ -22,6 +23,9 @@ function init() {
   $('logout-mobile').addEventListener('click', logout);
 
   pasangDialog($('dlg-detail'));
+
+  $('btn-ajukan').addEventListener('click', (e) => ajukanTagihanBaru(e.currentTarget));
+  $('btn-ajukan-kosong').addEventListener('click', (e) => ajukanTagihanBaru(e.currentTarget));
 
   muatTagihan();
 }
@@ -43,12 +47,22 @@ function formatRupiahTagihan(angka) {
 }
 
 function getIdTagihan(t) {
-  return t?._id ?? t?.id ?? '';
+  return t?._id ?? t?.id ?? t?.['id-tagihan'] ?? '';
 }
 
 function urlPembayaran(t) {
   const id = getIdTagihan(t);
   return id ? `/penghuni/pembayaran?id=${encodeURIComponent(id)}` : '/penghuni/pembayaran';
+}
+
+function extractTagihanList(data) {
+  if (Array.isArray(data)) return data;
+  if (!data || typeof data !== 'object') return [];
+  for (const key of ['tagihan', 'riwayat', 'daftar', 'items', 'data']) {
+    if (Array.isArray(data[key])) return data[key];
+  }
+  if (data._id || data.id || data['bulan-tagihan']) return [data];
+  return [];
 }
 
 function cocokBulanIni(nilaiBulan) {
@@ -62,21 +76,38 @@ function cocokBulanIni(nilaiBulan) {
   return norm === bulanId || norm === bulanEn || norm.startsWith(yyyyMm) || norm === mmYyyy;
 }
 
+const normalStatus = (status) =>
+  String(status ?? '').trim().toLowerCase().replace(/[\s_]+/g, '-');
+
 const STATUS_MAP = {
   'lunas':               { label: 'Lunas',               pill: 'bg-green-100 text-green-700', box: 'border-green-300 bg-green-50 text-green-800' },
   'belum-bayar':         { label: 'Belum Bayar',         pill: 'bg-red-100 text-red-700',     box: 'border-[var(--color-primary)]/35 bg-[var(--color-cream)]/40 text-[var(--color-primary)]' },
+  'belum-lunas':         { label: 'Belum Bayar',         pill: 'bg-red-100 text-red-700',     box: 'border-[var(--color-primary)]/35 bg-[var(--color-cream)]/40 text-[var(--color-primary)]' },
+  'menunggu-pembayaran': { label: 'Belum Bayar',         pill: 'bg-red-100 text-red-700',     box: 'border-[var(--color-primary)]/35 bg-[var(--color-cream)]/40 text-[var(--color-primary)]' },
   'menunggu-konfirmasi': { label: 'Menunggu Konfirmasi', pill: 'bg-amber-100 text-amber-700', box: 'border-amber-300 bg-amber-50 text-amber-800' },
+  'menunggu-verifikasi': { label: 'Menunggu Konfirmasi', pill: 'bg-amber-100 text-amber-700', box: 'border-amber-300 bg-amber-50 text-amber-800' },
+  'menunggu':            { label: 'Menunggu Konfirmasi', pill: 'bg-amber-100 text-amber-700', box: 'border-amber-300 bg-amber-50 text-amber-800' },
   'ditolak':             { label: 'Ditolak',             pill: 'bg-red-100 text-red-700',     box: 'border-red-300 bg-red-50 text-red-700' },
   'terlambat':           { label: 'Terlambat',           pill: 'bg-red-100 text-red-700',     box: 'border-red-300 bg-red-50 text-red-700' },
 };
 
 const bisaDibayar = (status) => {
-  const s = String(status ?? '').toLowerCase();
-  return s === 'belum-bayar' || s === 'ditolak' || s === 'terlambat';
+  const s = normalStatus(status);
+  return ['belum-bayar', 'belum-lunas', 'menunggu-pembayaran', 'unpaid', 'pending', 'ditolak', 'terlambat'].includes(s);
+};
+
+const sudahLunas = (status) => {
+  const s = normalStatus(status);
+  return ['lunas', 'paid', 'terverifikasi'].includes(s);
+};
+
+const sedangMenunggu = (status) => {
+  const s = normalStatus(status);
+  return ['menunggu-konfirmasi', 'menunggu-verifikasi', 'menunggu'].includes(s);
 };
 
 function statusBadge(status) {
-  const key = String(status ?? '').toLowerCase();
+  const key = normalStatus(status);
   const s = STATUS_MAP[key] ?? { label: status ?? '-', pill: 'bg-stone-100 text-stone-600' };
   const el = document.createElement('span');
   el.className   = `inline-flex whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium ${s.pill}`;
@@ -90,26 +121,32 @@ function waktuUrut(t) {
   return Number.isNaN(ts) ? 0 : ts;
 }
 
+function tampilkanTombol(el, tampil) {
+  el.classList.toggle('hidden', !tampil);
+  el.classList.toggle('inline-flex', tampil);
+}
+
 async function muatTagihan() {
   try {
     const data = await getTagihan();
-    const rawList = Array.isArray(data) ? data : (Array.isArray(data?.tagihan) ? data.tagihan : []);
+    const rawList = extractTagihanList(data);
     semuaTagihan = [...rawList].sort((a, b) => waktuUrut(b) - waktuUrut(a));
 
     $('skeleton-bulan-ini').classList.add('hidden');
     $('skeleton-riwayat').classList.add('hidden');
 
     const tagihanBulanIni = semuaTagihan.find((t) => cocokBulanIni(t['bulan-tagihan']));
-    const tagihanAktif = tagihanBulanIni ?? semuaTagihan.find((t) => {
-      const st = String(t.status ?? '').toLowerCase();
-      return st !== 'lunas';
-    }) ?? null;
+    const tagihanBelumBayar = semuaTagihan.find((t) => bisaDibayar(t.status));
+    const tagihanMenunggu = semuaTagihan.find((t) => sedangMenunggu(t.status));
+
+    // Kartu atas: prioritaskan tagihan bulan ini, jika tidak ada ambil tagihan belum lunas / menunggu / terbaru
+    const tagihanAktif = tagihanBulanIni ?? tagihanBelumBayar ?? tagihanMenunggu ?? semuaTagihan[0] ?? null;
 
     $('konten-bulan-ini').classList.add('hidden');
     $('tidak-ada-tagihan').classList.add('hidden');
 
     if (tagihanAktif) {
-      const key = String(tagihanAktif.status ?? '').toLowerCase();
+      const key = normalStatus(tagihanAktif.status);
       const s = STATUS_MAP[key] ?? { label: tagihanAktif.status ?? '-', box: 'border-stone-300 bg-stone-50 text-stone-700' };
 
       $('judul-tagihan-aktif').textContent = tagihanBulanIni ? 'Tagihan Bulan Ini' : 'Tagihan Aktif';
@@ -121,18 +158,34 @@ async function muatTagihan() {
       badge.textContent = s.label;
       badge.className   = `mt-1.5 inline-flex min-w-[11rem] items-center justify-center rounded-lg border px-5 py-2 text-sm font-semibold ${s.box}`;
 
-      const btnBayar = $('btn-bayar');
+      const btnBayar  = $('btn-bayar');
+      const btnAjukan = $('btn-ajukan');
+
       if (bisaDibayar(tagihanAktif.status)) {
+        // Tagihan bulan ini / aktif belum dibayar → tombol Bayar
+        $('btn-bayar-label').textContent = 'Bayar';
         btnBayar.href = urlPembayaran(tagihanAktif);
-        btnBayar.classList.remove('hidden');
-        btnBayar.classList.add('inline-flex');
-      } else if (key === 'lunas') {
-        btnBayar.href = '/penghuni/pembayaran';
-        btnBayar.classList.remove('hidden');
-        btnBayar.classList.add('inline-flex');
+        tampilkanTombol(btnBayar, true);
+        tampilkanTombol(btnAjukan, false);
+      } else if (sudahLunas(tagihanAktif.status)) {
+        if (tagihanBelumBayar) {
+          // Sudah pernah ajukan tagihan bulan depan dan tagihannya belum dibayar → arahkan langsung ke Bayar
+          $('btn-bayar-label').textContent = 'Bayar Bulan Depan';
+          btnBayar.href = urlPembayaran(tagihanBelumBayar);
+          tampilkanTombol(btnBayar, true);
+          tampilkanTombol(btnAjukan, false);
+        } else if (!tagihanMenunggu) {
+          // Bulan ini sudah lunas & belum ada tagihan bulan depan → tombol Ajukan Tagihan (trigger buat tagihan)
+          tampilkanTombol(btnBayar, false);
+          tampilkanTombol(btnAjukan, true);
+        } else {
+          tampilkanTombol(btnBayar, false);
+          tampilkanTombol(btnAjukan, false);
+        }
       } else {
-        btnBayar.classList.add('hidden');
-        btnBayar.classList.remove('inline-flex');
+        // Menunggu konfirmasi admin
+        tampilkanTombol(btnBayar, false);
+        tampilkanTombol(btnAjukan, false);
       }
 
       $('konten-bulan-ini').classList.remove('hidden');
@@ -196,7 +249,7 @@ async function muatTagihan() {
       btnPdf.type        = 'button';
       btnPdf.className   = 'rounded-lg border border-[var(--color-primary)]/30 bg-transparent px-3 py-1.5 text-xs font-medium text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/10 disabled:opacity-50';
       btnPdf.textContent = 'PDF';
-      btnPdf.addEventListener('click', () => unduhPdf(t, btnPdf));
+      btnPdf.addEventListener('click', () => unduhPdf(t, btnPdf, false));
 
       aksiWrap.append(btnDetail, btnPdf);
       tdAksi.append(aksiWrap);
@@ -213,35 +266,88 @@ async function muatTagihan() {
   }
 }
 
+// ── Trigger Ajukan Tagihan (generate tagihan bulan depan langsung di tabel) ──
+async function ajukanTagihanBaru(btn) {
+  tampilPesan('', '');
+  const labelNode = btn.querySelector('#btn-ajukan-label') ?? btn;
+  const labelAwal = labelNode.textContent;
+  btn.disabled = true;
+  labelNode.textContent = 'Mengajukan...';
+
+  try {
+    await mintaTagihan();
+    tampilPesan('ok', 'Tagihan bulan berikutnya berhasil dibuat! Silakan klik tombol Bayar pada tagihan baru di riwayat.');
+    await muatTagihan();
+  } catch (err) {
+    tampilPesan('error', err.message);
+  } finally {
+    btn.disabled = false;
+    labelNode.textContent = labelAwal;
+  }
+}
+
+// ── Pesan di dalam modal detail ───────────────────────────────────────────────
+function setDetailMsg(type, msg) {
+  const el = $('detail-msg');
+  if (!msg) {
+    el.textContent = '';
+    el.classList.add('hidden');
+    return;
+  }
+  el.textContent = msg;
+  el.className = type === 'ok'
+    ? 'mt-3 rounded-lg bg-green-50 px-3.5 py-2.5 text-xs text-green-800'
+    : 'mt-3 rounded-lg bg-red-50 px-3.5 py-2.5 text-xs text-red-800';
+}
+
 // ── Unduh PDF Tagihan ─────────────────────────────────────────────────────────
-async function unduhPdf(tagihan, btn) {
+async function unduhPdf(tagihan, btn, inDialog = false) {
   const id = getIdTagihan(tagihan);
-  if (!id) return;
+  if (!id) {
+    const msg = 'ID tagihan tidak ditemukan.';
+    inDialog ? setDetailMsg('error', msg) : tampilPesan('error', msg);
+    return;
+  }
+
   const labelAwal = btn.textContent;
   btn.disabled = true;
-  btn.textContent = 'Membuat...';
-  tampilPesan('', '');
+  btn.textContent = 'Mengunduh...';
+  if (inDialog) setDetailMsg('', '');
+  else tampilPesan('', '');
 
   try {
     const hasil = await generateTagihanPdf(id);
+    const namaFile = `tagihan-${tagihan['nomor-tagihan'] ?? id}.pdf`;
+
     if (hasil.type === 'blob') {
-      const url = URL.createObjectURL(hasil.blob);
+      const blobUrl = URL.createObjectURL(hasil.blob);
       const a = document.createElement('a');
-      a.href = url;
-      a.download = `tagihan-${tagihan['nomor-tagihan'] ?? id}.pdf`;
-      document.body.append(a);
+      a.href = blobUrl;
+      a.download = namaFile;
+      a.style.display = 'none';
+      const parent = inDialog ? $('dlg-detail') : document.body;
+      parent.append(a);
       a.click();
       a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 5000);
-      tampilPesan('ok', 'PDF tagihan berhasil diunduh.');
-    } else if (hasil.url && /^https?:\/\//.test(hasil.url)) {
-      window.open(hasil.url, '_blank', 'noopener,noreferrer');
-      tampilPesan('ok', 'PDF tagihan dibuka di tab baru.');
-    } else {
-      tampilPesan('ok', 'PDF tagihan berhasil dibuat.');
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+      const okMsg = 'PDF tagihan berhasil diunduh.';
+      inDialog ? setDetailMsg('ok', okMsg) : tampilPesan('ok', okMsg);
+    } else if (hasil.type === 'url' && hasil.url) {
+      const a = document.createElement('a');
+      a.href = hasil.url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.download = namaFile;
+      a.style.display = 'none';
+      const parent = inDialog ? $('dlg-detail') : document.body;
+      parent.append(a);
+      a.click();
+      a.remove();
+      const okMsg = 'PDF tagihan berhasil dibuka/diunduh.';
+      inDialog ? setDetailMsg('ok', okMsg) : tampilPesan('ok', okMsg);
     }
   } catch (err) {
-    tampilPesan('error', err.message);
+    inDialog ? setDetailMsg('error', err.message) : tampilPesan('error', err.message);
   } finally {
     btn.disabled = false;
     btn.textContent = labelAwal;
@@ -250,6 +356,7 @@ async function unduhPdf(tagihan, btn) {
 
 // ── Dialog Detail Tagihan ─────────────────────────────────────────────────────
 function bukaDetail(t) {
+  setDetailMsg('', '');
   const body = $('detail-body');
   body.replaceChildren();
 
@@ -319,7 +426,7 @@ function bukaDetail(t) {
   btnPdf.type = 'button';
   btnPdf.className = 'rounded-lg border border-[var(--color-primary)]/30 px-4 py-2 text-xs font-medium text-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 disabled:opacity-50';
   btnPdf.textContent = 'Unduh PDF';
-  btnPdf.addEventListener('click', () => unduhPdf(t, btnPdf));
+  btnPdf.addEventListener('click', () => unduhPdf(t, btnPdf, true));
   footer.append(btnPdf);
 
   if (bisaDibayar(t.status)) {
