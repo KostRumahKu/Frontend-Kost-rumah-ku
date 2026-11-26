@@ -150,6 +150,16 @@ export async function generateTagihanPdf(idTagihan) {
 export const getPengumuman = (filter) =>
   apiFetch(`/api/penyewa/pengumuman${filter ? `?filter=${filter}` : ''}`);
 
+// ── Pengajuan Kamar (Pindah Kamar / Berhenti Sewa) ────────────────────────────
+export const getPengajuan = () => apiFetch('/api/penyewa/pengajuan');
+
+// data: { 'jenis-pengajuan': 'pindah-kamar' | 'berhenti-sewa', 'tanggal-target': 'YYYY-MM-DD', alasan }
+export const buatPengajuan = (data) =>
+  apiFetch('/api/penyewa/pengajuan', { method: 'POST', body: data });
+
+export const batalkanPengajuan = (id) =>
+  apiFetch(`/api/penyewa/${encodeURIComponent(id)}/batalkan`, { method: 'PUT' });
+
 // ── Profil ────────────────────────────────────────────────────────────────────
 // data: { nama-lengkap, nomor-telepon, nama-kontak-darurat?, nomor-kontak-darurat?, foto-profil? }
 export const updateProfil = (data) =>
