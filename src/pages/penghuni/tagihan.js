@@ -65,15 +65,29 @@ function extractTagihanList(data) {
   return [];
 }
 
+const BULAN_MAP = {
+  januari: 0, februari: 1, febuari: 1, maret: 2, april: 3, mei: 4, juni: 5,
+  juli: 6, agustus: 7, september: 8, oktober: 9, november: 10, desember: 11,
+};
+
+function parsePeriodeBulan(str) {
+  const clean = String(str ?? '').trim().toLowerCase();
+  const m = clean.match(/([a-z]+)\s+(\d{4})/);
+  if (m && BULAN_MAP[m[1]] !== undefined) {
+    return { month: BULAN_MAP[m[1]], year: Number(m[2]) };
+  }
+  const iso = clean.match(/^(\d{4})-(\d{2})/);
+  if (iso) {
+    return { month: Number(iso[2]) - 1, year: Number(iso[1]) };
+  }
+  return null;
+}
+
 function cocokBulanIni(nilaiBulan) {
-  if (!nilaiBulan) return false;
+  const p = parsePeriodeBulan(nilaiBulan);
+  if (!p) return false;
   const now = new Date();
-  const bulanId = now.toLocaleString('id-ID', { month: 'long', year: 'numeric' }).toLowerCase();
-  const bulanEn = now.toLocaleString('en-US', { month: 'long', year: 'numeric' }).toLowerCase();
-  const yyyyMm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const mmYyyy = `${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`;
-  const norm = String(nilaiBulan).trim().toLowerCase();
-  return norm === bulanId || norm === bulanEn || norm.startsWith(yyyyMm) || norm === mmYyyy;
+  return p.month === now.getMonth() && p.year === now.getFullYear();
 }
 
 const normalStatus = (status) =>
@@ -116,7 +130,15 @@ function statusBadge(status) {
 }
 
 function waktuUrut(t) {
-  const raw = t?.['dibuat-pada'] ?? t?.['tanggal-jatuh-tempo'] ?? 0;
+  const p = parsePeriodeBulan(t?.['bulan-tagihan']);
+  if (p) {
+    if (t?.['tanggal-jatuh-tempo']) {
+      const jt = new Date(t['tanggal-jatuh-tempo']);
+      if (!Number.isNaN(jt.getTime())) return jt.getTime();
+    }
+    return new Date(p.year, p.month + 1, 0).getTime();
+  }
+  const raw = t?.['tanggal-jatuh-tempo'] ?? t?.['dibuat-pada'] ?? 0;
   const ts = new Date(raw).getTime();
   return Number.isNaN(ts) ? 0 : ts;
 }
@@ -139,8 +161,20 @@ async function muatTagihan() {
     const tagihanBelumBayar = semuaTagihan.find((t) => bisaDibayar(t.status));
     const tagihanMenunggu = semuaTagihan.find((t) => sedangMenunggu(t.status));
 
-    // Kartu atas: prioritaskan tagihan bulan ini, jika tidak ada ambil tagihan belum lunas / menunggu / terbaru
-    const tagihanAktif = tagihanBulanIni ?? tagihanBelumBayar ?? tagihanMenunggu ?? semuaTagihan[0] ?? null;
+    // Prioritas kartu atas:
+    // 1. Jika tagihan bulan ini BELUM LUNAS (belum bayar / menunggu konfirmasi) → tampilkan Tagihan Bulan Ini
+    // 2. Jika bulan ini sudah lunas tapi ada tagihan bulan berikutnya yang belum bayar / menunggu → tampilkan Tagihan Bulan Berikutnya (mis. Maret 2027)
+    // 3. Jika semua sudah lunas → tampilkan Tagihan Bulan Ini (Lunas) + tombol Ajukan Tagihan
+    let tagihanAktif = null;
+    if (tagihanBulanIni && !sudahLunas(tagihanBulanIni.status)) {
+      tagihanAktif = tagihanBulanIni;
+    } else if (tagihanBelumBayar) {
+      tagihanAktif = tagihanBelumBayar;
+    } else if (tagihanMenunggu) {
+      tagihanAktif = tagihanMenunggu;
+    } else {
+      tagihanAktif = tagihanBulanIni ?? semuaTagihan[0] ?? null;
+    }
 
     $('konten-bulan-ini').classList.add('hidden');
     $('tidak-ada-tagihan').classList.add('hidden');
@@ -148,8 +182,11 @@ async function muatTagihan() {
     if (tagihanAktif) {
       const key = normalStatus(tagihanAktif.status);
       const s = STATUS_MAP[key] ?? { label: tagihanAktif.status ?? '-', box: 'border-stone-300 bg-stone-50 text-stone-700' };
+      const isBulanIni = cocokBulanIni(tagihanAktif['bulan-tagihan']);
 
-      $('judul-tagihan-aktif').textContent = tagihanBulanIni ? 'Tagihan Bulan Ini' : 'Tagihan Aktif';
+      $('judul-tagihan-aktif').textContent = isBulanIni
+        ? 'Tagihan Bulan Ini'
+        : 'Tagihan Bulan Berikutnya';
       $('tagihan-jumlah').textContent      = formatRupiahTagihan(tagihanAktif['jumlah-tagihan']);
       $('tagihan-bulan').textContent       = `Periode : ${tagihanAktif['bulan-tagihan'] ?? '-'}`;
       $('tagihan-jatuh-tempo').textContent = `Jatuh Tempo : ${formatTanggal(tagihanAktif['tanggal-jatuh-tempo'])}`;
@@ -162,28 +199,16 @@ async function muatTagihan() {
       const btnAjukan = $('btn-ajukan');
 
       if (bisaDibayar(tagihanAktif.status)) {
-        // Tagihan bulan ini / aktif belum dibayar → tombol Bayar
         $('btn-bayar-label').textContent = 'Bayar';
         btnBayar.href = urlPembayaran(tagihanAktif);
         tampilkanTombol(btnBayar, true);
         tampilkanTombol(btnAjukan, false);
       } else if (sudahLunas(tagihanAktif.status)) {
-        if (tagihanBelumBayar) {
-          // Sudah pernah ajukan tagihan bulan depan dan tagihannya belum dibayar → arahkan langsung ke Bayar
-          $('btn-bayar-label').textContent = 'Bayar Bulan Depan';
-          btnBayar.href = urlPembayaran(tagihanBelumBayar);
-          tampilkanTombol(btnBayar, true);
-          tampilkanTombol(btnAjukan, false);
-        } else if (!tagihanMenunggu) {
-          // Bulan ini sudah lunas & belum ada tagihan bulan depan → tombol Ajukan Tagihan (trigger buat tagihan)
-          tampilkanTombol(btnBayar, false);
-          tampilkanTombol(btnAjukan, true);
-        } else {
-          tampilkanTombol(btnBayar, false);
-          tampilkanTombol(btnAjukan, false);
-        }
+        // Semua tagihan saat ini sudah lunas → tampilkan tombol Ajukan Tagihan untuk bulan berikutnya
+        tampilkanTombol(btnBayar, false);
+        tampilkanTombol(btnAjukan, true);
       } else {
-        // Menunggu konfirmasi admin
+        // Sedang menunggu konfirmasi admin
         tampilkanTombol(btnBayar, false);
         tampilkanTombol(btnAjukan, false);
       }
