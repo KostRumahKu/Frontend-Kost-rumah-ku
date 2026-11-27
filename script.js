@@ -59,6 +59,8 @@ app.use(express.static(path.join(__dirname, "pages"), { extensions: ["html"] }))
 
 app.get("/", (_req, res) =>
   res.sendFile(path.join(__dirname, "pages", "index.html")));
+app.get("/kamar", (_req, res) =>
+  res.sendFile(path.join(__dirname, "pages", "kamar.html")));
 
 app.get("/auth/login",          (_req, res) => res.sendFile(path.join(__dirname, "pages", "auth", "login.html")));
 app.get("/auth/admin-login",    (_req, res) => res.sendFile(path.join(__dirname, "pages", "auth", "admin-login.html")));

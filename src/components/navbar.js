@@ -1,9 +1,9 @@
 // Navbar reusable: header atas (desktop) + tab bar bawah (mobile)
-const ICON_PATH = '../public/icons';
+const ICON_PATH = '/public/icons';
 
 export const defaultItems = [
-  { id: 'beranda', label: 'Beranda', icon: 'home.webp', href: '' },
-  { id: 'kamar', label: 'Kamar', icon: 'rooms.webp', href: 'kamar' },
+  { id: 'beranda', label: 'Beranda', icon: 'home.webp', href: '/' },
+  { id: 'kamar', label: 'Kamar', icon: 'rooms.webp', href: '/kamar' },
   { id: 'fasilitas', label: 'Fasilitas', icon: 'facilities.webp', href: 'fasilitas' },
   { id: 'testimoni', label: 'Testimoni', icon: 'testimonial.webp', href: 'testimoni' },
   { id: 'lokasi', label: 'Lokasi', icon: 'location.webp', href: 'lokasi' },
@@ -31,9 +31,7 @@ function bottomItem(item) {
 }
 
 function actionItem(a) {
-  const cls = a.solid
-    ? 'rounded-lg bg-[var(--color-cream)] px-5 py-2 font-semibold text-[var(--color-primary)] shadow-sm transition-all hover:bg-white hover:shadow'
-    : 'rounded-lg bg-[var(--color-cream)] px-5 py-2 font-semibold text-[var(--color-primary)] shadow-sm transition-all hover:bg-white hover:shadow';
+  const cls = 'rounded-lg border border-[var(--color-cream)] bg-[var(--color-cream)] px-5 py-2 font-semibold text-[var(--color-primary)] shadow-sm transition-colors hover:border-[var(--color-cream)]/70 hover:bg-[var(--color-primary-dark)] hover:text-[var(--color-cream)]';
   return a.href
     ? `<a href="${a.href}" class="${cls}">${a.label}</a>`
     : `<button type="button" data-action="${a.action}" class="${cls}">${a.label}</button>`;
@@ -75,7 +73,7 @@ export function mountNavbar({
   topEl,
   bottomEl,
   items = defaultItems,
-  brand = { name: 'KostRumahKu', href: 'index.html' },
+  brand = { name: 'KostRumahKu', href: '/' },
   actions = [],
   active = items[0]?.id,
   onSelect,
