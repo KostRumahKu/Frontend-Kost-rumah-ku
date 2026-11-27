@@ -32,8 +32,8 @@ function bottomItem(item) {
 
 function actionItem(a) {
   const cls = a.solid
-    ? 'rounded-lg bg-[var(--color-cream)] px-4 py-2 font-medium text-[var(--color-primary)] hover:bg-white'
-    : 'rounded-lg px-4 py-2 hover:bg-white/10';
+    ? 'rounded-lg bg-[var(--color-cream)] px-5 py-2 font-semibold text-[var(--color-primary)] shadow-sm transition-all hover:bg-white hover:shadow'
+    : 'rounded-lg bg-[var(--color-cream)] px-5 py-2 font-semibold text-[var(--color-primary)] shadow-sm transition-all hover:bg-white hover:shadow';
   return a.href
     ? `<a href="${a.href}" class="${cls}">${a.label}</a>`
     : `<button type="button" data-action="${a.action}" class="${cls}">${a.label}</button>`;
@@ -43,10 +43,10 @@ function renderTop({ items, brand, actions }) {
   const links = items.map((item) => `<li>${topItem(item)}</li>`).join('');
 
   return `
-    <div class="bg-[var(--color-primary)] text-[var(--color-cream)]">
-      <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-        <a href="${brand.href}" class="flex items-center gap-2 font-[family-name:var(--font-heading)] text-lg font-semibold tracking-wide">${logo}${brand.name}</a>
-        <nav aria-label="Main"><ul class="flex items-center gap-2 text-sm">${links}</ul></nav>
+    <div class="bg-[var(--color-primary)] text-[var(--color-cream)] border-b border-white/10">
+      <div class="mx-auto flex w-full max-w-[90rem] items-center justify-between px-6 py-3.5 md:px-10">
+        <a href="${brand.href}" class="flex items-center gap-2.5 font-[family-name:var(--font-heading)] text-lg font-semibold tracking-wide transition-opacity hover:opacity-90">${logo}${brand.name}</a>
+        <nav aria-label="Main"><ul class="flex items-center gap-1.5 text-sm font-medium">${links}</ul></nav>
         <div class="flex items-center gap-2 text-sm">${actions.map(actionItem).join('')}</div>
       </div>
     </div>`;

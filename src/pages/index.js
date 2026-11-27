@@ -6,7 +6,7 @@ mountNavbar({
   topEl: document.getElementById('top-nav'),
   active: 'beranda',
   actions: [
-    { label: 'Masuk', href: 'auth/login' },
+    { label: 'Masuk', href: '/auth/login', solid: true },
   ],
 });
 

@@ -22,6 +22,10 @@ export const kirimPembayaran = (data) =>
 export const getDaftarRekening = () =>
   apiFetch('/api/public/rekening', { auth: false });
 
+// Daftar peraturan & tata tertib kost
+export const getSemuaPeraturan = () =>
+  apiFetch('/api/public/semua-peraturan', { auth: false });
+
 function cariUrlPdf(obj) {
   if (!obj) return null;
   if (typeof obj === 'string') {
