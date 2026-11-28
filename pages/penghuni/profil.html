@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Profil | KostRumahKu</title>
+  <link rel="icon" href="/public/favicon.ico" />
+  <link rel="stylesheet" href="/src/css/style.css" />
+</head>
+
+<body class="flex h-dvh overflow-hidden bg-[var(--color-cream)] font-[family-name:var(--font-body)] text-[var(--color-ink)]">
+
+  <aside id="sidebar" class="hidden shrink-0 md:block"></aside>
+
+  <div class="flex min-w-0 flex-1 flex-col">
+    <header class="flex shrink-0 items-center justify-between gap-3 border-b border-black/10 bg-[var(--color-surface)] px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] md:px-8 md:py-4">
+      <div>
+        <h1 class="font-[family-name:var(--font-heading)] text-xl font-semibold md:text-2xl">Profil</h1>
+        <p class="text-sm text-[var(--color-muted)]">Kelola informasi akun, email, &amp; keamananmu</p>
+      </div>
+      <button id="logout-mobile" type="button"
+        class="rounded-lg border border-[var(--color-primary)]/30 px-4 py-2 text-sm font-medium text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/5 md:hidden">
+        Keluar
+      </button>
+    </header>
+
+    <main class="min-h-0 flex-1 overflow-y-auto p-4 pb-28 md:p-8 md:pb-8">
+
+      <p id="page-error"   role="alert"  class="mb-5 hidden rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800"></p>
+      <p id="page-success" role="status" class="mb-5 hidden rounded-xl bg-green-50 px-4 py-3 text-sm text-green-800"></p>
+
+      <!-- Skeleton -->
+      <div id="profil-skeleton" class="space-y-5">
+        <div class="animate-pulse rounded-2xl border border-[var(--color-primary)]/15 bg-[var(--color-surface)] p-6 shadow-sm">
+          <div class="flex items-center gap-5">
+            <div class="h-24 w-24 shrink-0 rounded-full bg-[var(--color-primary)]/10"></div>
+            <div class="flex-1 space-y-2.5">
+              <div class="h-5 w-1/3 rounded-lg bg-[var(--color-primary)]/15"></div>
+              <div class="h-3.5 w-1/2 rounded-lg bg-[var(--color-primary)]/10"></div>
+              <div class="h-3.5 w-1/4 rounded-lg bg-[var(--color-primary)]/10"></div>
+            </div>
+          </div>
+        </div>
+        <div class="grid gap-5 lg:grid-cols-5">
+          <div class="animate-pulse space-y-3 rounded-2xl border border-[var(--color-primary)]/15 bg-[var(--color-surface)] p-6 shadow-sm lg:col-span-3">
+            <div class="h-4 w-1/3 rounded-lg bg-[var(--color-primary)]/15"></div>
+            <div class="h-10 w-full rounded-lg bg-[var(--color-primary)]/10"></div>
+            <div class="h-10 w-full rounded-lg bg-[var(--color-primary)]/10"></div>
+          </div>
+          <div class="animate-pulse space-y-3 rounded-2xl border border-[var(--color-primary)]/15 bg-[var(--color-surface)] p-6 shadow-sm lg:col-span-2">
+            <div class="h-4 w-1/3 rounded-lg bg-[var(--color-primary)]/15"></div>
+            <div class="h-10 w-full rounded-lg bg-[var(--color-primary)]/10"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Konten -->
+      <div id="profil-konten" class="hidden space-y-6">
+
+        <!-- Kartu foto & identitas -->
+        <section class="rounded-2xl border border-[var(--color-primary)]/15 bg-[var(--color-surface)] p-6 shadow-sm">
+          <div class="flex flex-col items-center gap-5 sm:flex-row sm:items-center">
+            <div class="relative shrink-0">
+              <div class="h-24 w-24 overflow-hidden rounded-full border-4 border-[var(--color-cream)] shadow-md">
+                <img id="foto-profil" src="" alt="Foto profil" class="hidden h-full w-full object-cover" />
+                <div id="foto-placeholder" class="flex h-full w-full items-center justify-center bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                  <svg class="h-10 w-10" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+                </div>
+              </div>
+              <button id="btn-buka-foto" type="button"
+                class="absolute bottom-0 right-0 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-[var(--color-primary)] text-[var(--color-cream)] shadow-md transition-colors hover:bg-[var(--color-primary-dark)]"
+                title="Ganti foto profil" aria-label="Ganti foto profil">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" /><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" /></svg>
+              </button>
+            </div>
+
+            <div class="min-w-0 flex-1 text-center sm:text-left">
+              <div class="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+                <h2 id="profil-nama" class="font-[family-name:var(--font-heading)] text-xl font-semibold text-[var(--color-ink)]">—</h2>
+                <span id="profil-kamar-badge" class="hidden rounded-full bg-[var(--color-cream)] px-3 py-0.5 text-xs font-medium text-[var(--color-primary)]"></span>
+              </div>
+              <p id="profil-email" class="mt-1 truncate text-sm text-[var(--color-muted)]">—</p>
+              <p id="profil-telepon" class="mt-0.5 text-sm text-[var(--color-muted)]">—</p>
+            </div>
+
+            <div class="flex shrink-0 flex-wrap items-center justify-center gap-2">
+              <button id="btn-ganti-foto" type="button"
+                class="rounded-lg border border-[var(--color-primary)]/30 bg-[var(--color-cream)]/60 px-3.5 py-2 text-xs font-medium text-[var(--color-primary)] transition-colors hover:bg-[var(--color-primary)]/10">
+                Ganti foto
+              </button>
+              <button id="btn-hapus-foto" type="button"
+                class="hidden rounded-lg border border-red-200 bg-transparent px-3.5 py-2 text-xs font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60">
+                Hapus foto
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Grid 2 kolom di desktop -->
+        <div class="grid gap-6 lg:grid-cols-5">
+
+          <!-- Informasi Pribadi -->
+          <section class="rounded-2xl border border-[var(--color-primary)]/15 bg-[var(--color-surface)] p-6 shadow-sm lg:col-span-3 lg:self-start">
+            <h3 class="font-[family-name:var(--font-heading)] text-base font-semibold text-[var(--color-primary)]">Informasi Pribadi</h3>
+            <p class="mt-0.5 mb-5 text-xs text-[var(--color-muted)]">Perbarui data diri dan kontak daruratmu.</p>
+
+            <p id="info-error" role="alert" class="mb-4 hidden rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800"></p>
+            <p id="info-success" role="status" class="mb-4 hidden rounded-lg bg-green-50 px-4 py-3 text-sm text-green-800"></p>
+
+            <form id="form-info" class="space-y-4" novalidate>
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label for="f-nama" class="mb-1.5 block text-sm font-medium">Nama lengkap <span class="text-red-600">*</span></label>
+                  <input id="f-nama" type="text" autocomplete="name"
+                    class="w-full rounded-lg border border-[var(--color-primary)]/30 bg-[var(--color-cream)]/60 px-4 py-2.5 text-sm focus:border-[var(--color-primary)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/40 aria-[invalid=true]:border-red-400" />
+                  <p id="f-nama-err" class="mt-1 hidden text-xs text-red-600"></p>
+                </div>
+                <div>
+                  <label for="f-telepon" class="mb-1.5 block text-sm font-medium">Nomor telepon <span class="text-red-600">*</span></label>
+                  <input id="f-telepon" type="tel" inputmode="tel"
+                    class="w-full rounded-lg border border-[var(--color-primary)]/30 bg-[var(--color-cream)]/60 px-4 py-2.5 text-sm focus:border-[var(--color-primary)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/40 aria-[invalid=true]:border-red-400" />
+                  <p id="f-telepon-err" class="mt-1 hidden text-xs text-red-600"></p>
+                </div>
+              </div>
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label for="f-darurat-nama" class="mb-1.5 block text-sm font-medium">Kontak darurat <span class="font-normal text-[var(--color-muted)]">(nama)</span></label>
+                  <input id="f-darurat-nama" type="text"
+                    class="w-full rounded-lg border border-[var(--color-primary)]/30 bg-[var(--color-cream)]/60 px-4 py-2.5 text-sm focus:border-[var(--color-primary)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/40" />
+                </div>
+                <div>
+                  <label for="f-darurat-telp" class="mb-1.5 block text-sm font-medium">Kontak darurat <span class="font-normal text-[var(--color-muted)]">(telepon)</span></label>
+                  <input id="f-darurat-telp" type="tel" inputmode="tel"
+                    class="w-full rounded-lg border border-[var(--color-primary)]/30 bg-[var(--color-cream)]/60 px-4 py-2.5 text-sm focus:border-[var(--color-primary)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/40" />
+                </div>
+              </div>
+              <div class="flex justify-end border-t border-[var(--color-primary)]/10 pt-4">
+                <button id="btn-simpan-info" type="submit"
+                  class="rounded-lg bg-[var(--color-primary)] px-6 py-2.5 text-sm font-medium text-[var(--color-cream)] transition-colors hover:bg-[var(--color-primary-dark)] disabled:opacity-60">
+                  Simpan perubahan
+                </button>
+              </div>
+            </form>
+          </section>
+
+          <!-- Kanan: Ganti Email + Ganti Password -->
+          <div class="space-y-6 lg:col-span-2">
+
+            <!-- Ganti Email -->
+            <section class="rounded-2xl border border-[var(--color-primary)]/15 bg-[var(--color-surface)] p-6 shadow-sm">
+              <h3 class="font-[family-name:var(--font-heading)] text-base font-semibold text-[var(--color-primary)]">Ganti Email</h3>
+              <p class="mt-0.5 mb-4 text-xs text-[var(--color-muted)]">Kode OTP akan dikirim ke email baru untuk verifikasi.</p>
+
+              <p id="email-error"   role="alert"  class="mb-4 hidden rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800"></p>
+              <p id="email-success" role="status" class="mb-4 hidden rounded-lg bg-green-50 px-4 py-3 text-sm text-green-800"></p>
+
+              <div id="email-step-1">
+                <form id="form-email-1" class="flex flex-col gap-2.5 sm:flex-row" novalidate>
+                  <input id="f-email-baru" type="email" inputmode="email" placeholder="Masukkan email baru"
+                    class="flex-1 rounded-lg border border-[var(--color-primary)]/30 bg-[var(--color-cream)]/60 px-4 py-2.5 text-sm focus:border-[var(--color-primary)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/40 aria-[invalid=true]:border-red-400" />
+                  <button id="btn-req-otp" type="submit"
+                    class="shrink-0 rounded-lg bg-[var(--color-primary)] px-5 py-2.5 text-sm font-medium text-[var(--color-cream)] transition-colors hover:bg-[var(--color-primary-dark)] disabled:opacity-60">
+                    Kirim OTP
+                  </button>
+                </form>
+              </div>
+
+              <div id="email-step-2" class="hidden">
+                <form id="form-email-2" class="flex flex-col gap-2.5 sm:flex-row" novalidate>
+                  <input id="f-otp-email" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="Kode OTP (6 digit)" maxlength="6"
+                    class="flex-1 rounded-lg border border-[var(--color-primary)]/30 bg-[var(--color-cream)]/60 px-4 py-2.5 text-sm tracking-widest focus:border-[var(--color-primary)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/40 aria-[invalid=true]:border-red-400" />
+                  <button id="btn-verify-otp" type="submit"
+                    class="shrink-0 rounded-lg bg-[var(--color-primary)] px-5 py-2.5 text-sm font-medium text-[var(--color-cream)] transition-colors hover:bg-[var(--color-primary-dark)] disabled:opacity-60">
+                    Verifikasi
+                  </button>
+                </form>
+                <div class="mt-2.5 flex items-center justify-between text-xs">
+                  <button id="btn-back-email" type="button" class="text-[var(--color-muted)] hover:text-[var(--color-primary)] hover:underline">← Ganti email</button>
+                  <button id="btn-resend-otp" type="button" class="font-medium text-[var(--color-primary)] hover:underline disabled:opacity-50">Kirim ulang OTP</button>
+                </div>
+              </div>
+            </section>
+
+            <!-- Ganti Password -->
+            <section class="rounded-2xl border border-[var(--color-primary)]/15 bg-[var(--color-surface)] p-6 shadow-sm">
+              <h3 class="font-[family-name:var(--font-heading)] text-base font-semibold text-[var(--color-primary)]">Ganti Password</h3>
+              <p class="mt-0.5 mb-4 text-xs text-[var(--color-muted)]">Gunakan password minimal 8 karakter.</p>
+
+              <p id="pw-error"   role="alert"  class="mb-4 hidden rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800"></p>
+              <p id="pw-success" role="status" class="mb-4 hidden rounded-lg bg-green-50 px-4 py-3 text-sm text-green-800"></p>
+
+              <form id="form-password" class="space-y-4" novalidate>
+                <div>
+                  <label for="f-pw-lama" class="mb-1.5 block text-sm font-medium">Password lama</label>
+                  <div class="relative">
+                    <input id="f-pw-lama" type="password" autocomplete="current-password"
+                      class="w-full rounded-lg border border-[var(--color-primary)]/30 bg-[var(--color-cream)]/60 py-2.5 pl-4 pr-24 text-sm focus:border-[var(--color-primary)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/40 aria-[invalid=true]:border-red-400" />
+                    <button type="button" data-toggle="f-pw-lama" class="absolute inset-y-0 right-0 px-4 text-xs font-medium text-[var(--color-primary)] hover:underline">Tampilkan</button>
+                  </div>
+                </div>
+                <div>
+                  <label for="f-pw-baru" class="mb-1.5 block text-sm font-medium">Password baru</label>
+                  <div class="relative">
+                    <input id="f-pw-baru" type="password" autocomplete="new-password"
+                      class="w-full rounded-lg border border-[var(--color-primary)]/30 bg-[var(--color-cream)]/60 py-2.5 pl-4 pr-24 text-sm focus:border-[var(--color-primary)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/40 aria-[invalid=true]:border-red-400" />
+                    <button type="button" data-toggle="f-pw-baru" class="absolute inset-y-0 right-0 px-4 text-xs font-medium text-[var(--color-primary)] hover:underline">Tampilkan</button>
+                  </div>
+                </div>
+                <div>
+                  <label for="f-pw-konfirmasi" class="mb-1.5 block text-sm font-medium">Konfirmasi password baru</label>
+                  <div class="relative">
+                    <input id="f-pw-konfirmasi" type="password" autocomplete="new-password"
+                      class="w-full rounded-lg border border-[var(--color-primary)]/30 bg-[var(--color-cream)]/60 py-2.5 pl-4 pr-24 text-sm focus:border-[var(--color-primary)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/40 aria-[invalid=true]:border-red-400" />
+                    <button type="button" data-toggle="f-pw-konfirmasi" class="absolute inset-y-0 right-0 px-4 text-xs font-medium text-[var(--color-primary)] hover:underline">Tampilkan</button>
+                  </div>
+                </div>
+                <div class="flex justify-end border-t border-[var(--color-primary)]/10 pt-4">
+                  <button id="btn-ganti-pw" type="submit"
+                    class="rounded-lg bg-[var(--color-primary)] px-6 py-2.5 text-sm font-medium text-[var(--color-cream)] transition-colors hover:bg-[var(--color-primary-dark)] disabled:opacity-60">
+                    Ganti password
+                  </button>
+                </div>
+              </form>
+            </section>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Dialog Ganti Foto Profil (URL gambar / webp via PUT /api/penyewa/profil) -->
+      <dialog id="dlg-foto" class="m-auto w-[calc(100%-2rem)] max-w-md rounded-2xl bg-[var(--color-surface)] p-0 shadow-xl backdrop:bg-black/50">
+        <form id="form-foto" class="p-6" novalidate>
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h3 class="font-[family-name:var(--font-heading)] text-lg font-semibold text-[var(--color-primary)]">Ganti Foto Profil</h3>
+              <p class="mt-0.5 text-xs text-[var(--color-muted)]">Masukkan URL gambar foto profil (disarankan format .webp)</p>
+            </div>
+            <button type="button" data-close aria-label="Tutup" class="rounded-lg p-1.5 hover:bg-black/5">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 6l12 12M18 6 6 18" /></svg>
+            </button>
+          </div>
+
+          <p id="foto-error" role="alert" class="mt-4 hidden rounded-lg bg-red-50 px-3.5 py-2.5 text-sm text-red-800"></p>
+
+          <div class="mt-4 space-y-4">
+            <div class="flex justify-center">
+              <div class="h-24 w-24 overflow-hidden rounded-full border-4 border-[var(--color-cream)] bg-[var(--color-primary)]/10 shadow-sm">
+                <img id="foto-preview" src="" alt="Pratinjau foto" class="hidden h-full w-full object-cover" />
+                <div id="foto-preview-ph" class="flex h-full w-full items-center justify-center text-xs text-[var(--color-muted)]">
+                  Pratinjau
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label for="f-foto-url" class="mb-1.5 block text-sm font-medium">URL Foto Profil <span class="text-red-600">*</span></label>
+              <input id="f-foto-url" type="url" required placeholder="https://contoh.com/foto.webp"
+                class="w-full rounded-lg border border-[var(--color-primary)]/30 bg-[var(--color-cream)]/60 px-4 py-2.5 text-sm focus:border-[var(--color-primary)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/40" />
+            </div>
+          </div>
+
+          <div class="mt-6 flex justify-end gap-2 border-t border-[var(--color-primary)]/10 pt-4">
+            <button type="button" data-close class="rounded-lg border border-[var(--color-primary)]/30 px-4 py-2 text-sm font-medium text-[var(--color-primary)] hover:bg-[var(--color-primary)]/5">
+              Batal
+            </button>
+            <button id="btn-simpan-foto" type="submit"
+              class="rounded-lg bg-[var(--color-primary)] px-5 py-2 text-sm font-medium text-[var(--color-cream)] transition-colors hover:bg-[var(--color-primary-dark)] disabled:opacity-60">
+              Simpan foto
+            </button>
+          </div>
+        </form>
+      </dialog>
+    </main>
+  </div>
+
+  <div id="bottom-nav" class="md:hidden"></div>
+
+  <script type="module">
+    try { const r = await fetch('/config'); window.__ENV__ = await r.json(); }
+    catch { window.__ENV__ = {}; }
+    await import('/src/pages/penghuni/profil.js');
+  </script>
+</body>
+</html>
