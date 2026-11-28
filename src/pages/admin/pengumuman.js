@@ -1,41 +1,12 @@
 // Logic for pages/admin/pengumuman.html
 import { mountAdminNav } from '../../components/admin-nav.js';
 import { requireRole, logout } from '../../utils/auth-guard.js';
-import { getRiwayatPengumuman, buatPengumuman, ubahPengumuman, hapusPengumuman } from '../../services/admin-service.js';
-import { Button } from '../../components/button.js';
-import { FormDialog } from '../../components/dialog.js';
+import { getRiwayatPengumuman, buatPengumuman } from '../../services/admin-service.js';
 import { formatTanggal } from '../../utils/format.js';
 
 function setMessage(el, message) {
   el.textContent = message;
   el.classList.toggle('hidden', !message);
-}
-
-let sedangUbah = null;
-const formUbah = FormDialog({
-  title: 'Ubah pengumuman',
-  fields: [
-    { name: 'judul',  label: 'Judul',  required: true },
-    { name: 'pesan',  label: 'Pesan',  required: true, type: 'textarea', rows: 6 },
-    { name: 'gambar', label: 'Link gambar', placeholder: 'https://...' },
-  ],
-  catatan: 'Perubahan hanya tampil di aplikasi. Email yang sudah terkirim tidak dikirim ulang.',
-  onSubmit: async (nilai) => {
-    await ubahPengumuman(sedangUbah._id, nilai);
-    setMessage(document.getElementById('form-success'), 'Pengumuman berhasil diperbarui.');
-    await muatRiwayat();
-  },
-});
-
-async function hapusItem(item) {
-  if (!window.confirm(`Hapus pengumuman "${item.judul}"? Email yang sudah terkirim tidak bisa ditarik.`)) return;
-  try {
-    await hapusPengumuman(item._id);
-    setMessage(document.getElementById('form-success'), 'Pengumuman berhasil dihapus.');
-    await muatRiwayat();
-  } catch (err) {
-    setMessage(document.getElementById('riwayat-error'), err.message);
-  }
 }
 
 function buildCard(item) {
@@ -67,16 +38,6 @@ function buildCard(item) {
     card.append(img);
   }
 
-  const aksi = document.createElement('div');
-  aksi.className = 'mt-4 flex gap-2';
-  aksi.append(
-    Button({ label: 'Ubah', variant: 'outline', className: '!px-4 !py-1.5', onClick: () => {
-      sedangUbah = item;
-      formUbah.open({ judul: item.judul, pesan: item.pesan, gambar: item.gambar ?? '' });
-    } }),
-    Button({ label: 'Hapus', variant: 'danger', className: '!px-4 !py-1.5', onClick: () => hapusItem(item) }),
-  );
-  card.append(aksi);
   return card;
 }
 

@@ -1,108 +1,43 @@
-// Logic for pages/admin/pembayaran.html: verifikasi bukti, terima/tolak, histori, pantau status
+// Logic for pages/admin/pembayaran.html: verifikasi bukti, terima/tolak, histori, pantau status.
+// Backend tidak punya endpoint /pembayaran: data pembayaran adalah tagihan yang sudah dibayar atau diajukan bukti bayarnya.
 import { mountAdminNav } from '../../components/admin-nav.js';
 import { StatCard } from '../../components/stat-card.js';
-import { Button } from '../../components/button.js';
-import { Dialog, DaftarInfo } from '../../components/dialog.js';
 import { ICON, tombolAksi, isiTabel, halamanData, renderPaging } from '../../components/table-kit.js';
+import { buatDialogTagihan, badgeStatus, sudahBayar, menungguValidasi, ditolak, penyewa, kamar, idPenyewa } from '../../components/tagihan-kit.js';
 import { requireRole, logout } from '../../utils/auth-guard.js';
-import { $, el, badge, cocok, tampilPesan, urlAman, formatTanggalSaja, formatTanggalRingkas } from '../../utils/dom.js';
+import { $, el, cocok, tampilPesan, formatTanggalRingkas } from '../../utils/dom.js';
 import { formatRupiah } from '../../utils/format.js';
-import { getDaftarPembayaran, prosesPembayaran } from '../../services/admin-service.js';
+import { getDaftarTagihan } from '../../services/admin-service.js';
 
 let semua = [];
 let halaman = 1;
 
-const STATUS = {
-  menunggu:      { label: 'Menunggu verifikasi', warna: 'kuning' },
-  terverifikasi: { label: 'Terverifikasi',       warna: 'hijau' },
-  ditolak:       { label: 'Ditolak',             warna: 'merah' },
-};
-const STATUS_TAGIHAN = {
-  'belum-bayar': { label: 'Belum bayar', warna: 'kuning' },
-  lunas:         { label: 'Lunas',       warna: 'hijau' },
-  terlambat:     { label: 'Terlambat',   warna: 'merah' },
-};
-const badgeStatus = (p) => { const s = STATUS[p.status] ?? { label: p.status, warna: 'abu' }; return badge(s.label, s.warna); };
-const badgeTagihan = (p) => { const s = STATUS_TAGIHAN[p['status-tagihan']] ?? { label: p['status-tagihan'] ?? '-', warna: 'abu' }; return badge(s.label, s.warna); };
+const dlg = buatDialogTagihan({ onSelesai: async (pesan) => { tampilPesan('ok', pesan); await muat(); } });
 
-const detail = Dialog({ title: 'Detail pembayaran', lebar: 'max-w-xl' });
-
-async function proses(p, status) {
-  const teks = status === 'terverifikasi'
-    ? `Terima pembayaran ${formatRupiah(p['jumlah-bayar'])} dari ${p['nama-penyewa']}? Tagihan ${p['nomor-tagihan']} akan ditandai lunas.`
-    : `Tolak pembayaran dari ${p['nama-penyewa']} untuk tagihan ${p['nomor-tagihan']}?`;
-  if (!window.confirm(teks)) return;
-  try {
-    await prosesPembayaran(p._id, status);
-    detail.close();
-    tampilPesan('ok', status === 'terverifikasi' ? 'Pembayaran diterima dan tagihan ditandai lunas.' : 'Pembayaran ditolak.');
-    await muat();
-  } catch (err) {
-    detail.dlg.open ? detail.setError(err.message) : tampilPesan('error', err.message);
-  }
-}
-
-function bukaDetail(p) {
-  detail.setTitle(`Pembayaran ${p['nomor-tagihan'] ?? ''}`.trim());
-  detail.body.replaceChildren();
-
-  const foto = urlAman(p['foto-bukti']);
-  if (foto) {
-    const a = el('a', 'mb-4 block');
-    a.href = foto; a.target = '_blank'; a.rel = 'noopener noreferrer';
-    const img = el('img', 'max-h-72 w-full rounded-xl bg-white object-contain');
-    img.src = foto; img.alt = `Bukti pembayaran ${p['nama-penyewa'] ?? ''}`; img.loading = 'lazy';
-    img.addEventListener('error', () => a.replaceWith(el('p', 'mb-4 rounded-xl bg-[var(--color-cream)] px-4 py-3 text-sm text-[var(--color-muted)]', 'Bukti pembayaran tidak dapat dimuat.')));
-    a.append(img);
-    detail.body.append(a);
-  } else {
-    detail.body.append(el('p', 'mb-4 rounded-xl bg-[var(--color-cream)] px-4 py-3 text-sm text-[var(--color-muted)]', 'Belum ada bukti pembayaran yang diunggah.'));
-  }
-
-  detail.body.append(DaftarInfo([
-    ['Penyewa', p['nama-penyewa']],
-    ['Kamar', p['nama-kamar']],
-    ['Tagihan', `${p['nomor-tagihan'] ?? '-'} (${p['bulan-tagihan'] ?? '-'})`],
-    ['Nilai tagihan', formatRupiah(p['jumlah-tagihan'])],
-    ['Jumlah dibayar', formatRupiah(p['jumlah-bayar'])],
-    ['Metode', p['metode-pembayaran']],
-    ['Tanggal bayar', formatTanggalSaja(p['tanggal-bayar'])],
-    ['Status bayar', badgeStatus(p)],
-    ['Status tagihan', badgeTagihan(p)],
-  ]));
-
-  detail.footer.replaceChildren();
-  if (p.status === 'menunggu') {
-    detail.footer.className = 'mt-5 flex flex-wrap justify-end gap-2 border-t border-[var(--color-primary)]/10 pt-5';
-    detail.footer.append(
-      Button({ label: 'Tolak', variant: 'danger', onClick: () => proses(p, 'ditolak') }),
-      Button({ label: 'Terima pembayaran', variant: 'primary', onClick: () => proses(p, 'terverifikasi') }),
-    );
-  }
-  detail.open();
-}
+const adaPembayaran = (t) => sudahBayar(t) || ditolak(t) || menungguValidasi(t) || Boolean(t['bukti-pembayaran']);
+const cocokStatus = (t, s) => (s === 'menunggu' ? menungguValidasi(t) : s === 'terverifikasi' ? sudahBayar(t) : s === 'ditolak' ? ditolak(t) : true);
 
 const KOLOM = [
-  { render: (p) => formatTanggalRingkas(p['tanggal-bayar']), cls: 'whitespace-nowrap' },
-  { render: (p) => p['nama-penyewa'] ?? '-', cls: 'font-medium' },
-  { render: (p) => p['nama-kamar'] ?? '-' },
-  { render: (p) => p['nomor-tagihan'] ?? '-', cls: 'whitespace-nowrap' },
+  { render: (t) => formatTanggalRingkas(t['diperbarui-pada'] ?? t['dibuat-pada']), cls: 'whitespace-nowrap' },
+  { render: (t) => penyewa(t), cls: 'font-medium' },
+  { render: (t) => kamar(t) },
+  { render: (t) => t['nomor-tagihan'] ?? '-', cls: 'whitespace-nowrap' },
   {
-    render: (p) => {
+    render: (t) => {
       const w = el('div', 'whitespace-nowrap');
-      w.append(el('div', '', formatRupiah(p['jumlah-bayar'])), el('div', 'text-xs text-[var(--color-muted)]', p['metode-pembayaran'] ?? '-'));
+      w.append(el('div', '', formatRupiah(t['jumlah-tagihan'])), el('div', 'text-xs text-[var(--color-muted)]', t['metode-pembayaran'] ?? '-'));
       return w;
     },
   },
-  { render: (p) => badgeStatus(p) },
+  { render: (t) => badgeStatus(t) },
   {
-    render: (p) => {
+    render: (t) => {
       const w = el('div', 'flex justify-end gap-1');
-      w.append(tombolAksi('Lihat bukti dan detail', ICON.lihat, () => bukaDetail(p)));
-      if (p.status === 'menunggu') {
+      w.append(tombolAksi('Lihat bukti dan detail', ICON.lihat, () => dlg.buka(t)));
+      if (menungguValidasi(t)) {
         w.append(
-          tombolAksi('Terima pembayaran', ICON.terima, () => proses(p, 'terverifikasi'), 'text-green-700'),
-          tombolAksi('Tolak pembayaran', ICON.tolak, () => proses(p, 'ditolak'), 'text-red-700'),
+          tombolAksi('Terima pembayaran', ICON.terima, () => dlg.mulaiValidasi(t, 'disetujui'), 'text-green-700'),
+          tombolAksi('Tolak pembayaran', ICON.tolak, () => dlg.mulaiValidasi(t, 'ditolak'), 'text-red-700'),
         );
       }
       return w;
@@ -113,22 +48,17 @@ const KOLOM = [
 function tersaring() {
   const kata = $('cari').value.trim();
   const status = $('filter-status').value;
-  const penyewa = $('filter-penyewa').value;
-  return semua.filter((p) => {
-    if (status && p.status !== status) return false;
-    if (penyewa && p['id-pengguna'] !== penyewa) return false;
-    return cocok(kata, p['nomor-tagihan'] ?? '', p['nama-penyewa'] ?? '', p['nama-kamar'] ?? '');
-  });
+  const id = $('filter-penyewa').value;
+  return semua.filter((t) => cocokStatus(t, status) && (!id || idPenyewa(t) === id) && cocok(kata, t['nomor-tagihan'] ?? '', penyewa(t), kamar(t)));
 }
 
 function renderStats() {
-  const hitung = (s) => semua.filter((p) => p.status === s).length;
-  const pemasukan = semua.filter((p) => p.status === 'terverifikasi').reduce((n, p) => n + (p['jumlah-bayar'] || 0), 0);
+  const diterima = semua.filter(sudahBayar).reduce((n, t) => n + (t['jumlah-tagihan'] || 0), 0);
   $('stats').replaceChildren(
-    StatCard({ label: 'Menunggu verifikasi', value: hitung('menunggu') }),
-    StatCard({ label: 'Terverifikasi', value: hitung('terverifikasi') }),
-    StatCard({ label: 'Ditolak', value: hitung('ditolak') }),
-    StatCard({ label: 'Total pembayaran diterima', value: formatRupiah(pemasukan) }),
+    StatCard({ label: 'Menunggu verifikasi', value: semua.filter(menungguValidasi).length }),
+    StatCard({ label: 'Terverifikasi', value: semua.filter(sudahBayar).length }),
+    StatCard({ label: 'Ditolak', value: semua.filter(ditolak).length }),
+    StatCard({ label: 'Total pembayaran diterima', value: formatRupiah(diterima) }),
   );
 }
 
@@ -136,7 +66,7 @@ function isiFilterPenyewa() {
   const select = $('filter-penyewa');
   const dipilih = select.value;
   const peta = new Map();
-  semua.forEach((p) => { if (p['id-pengguna']) peta.set(p['id-pengguna'], p['nama-penyewa'] ?? p['id-pengguna']); });
+  semua.forEach((t) => { const id = idPenyewa(t); if (id) peta.set(id, penyewa(t)); });
   const urut = [...peta.entries()].sort((a, b) => a[1].localeCompare(b[1], 'id'));
   select.replaceChildren(new Option('Semua penyewa', ''), ...urut.map(([id, nama]) => new Option(nama, id)));
   select.value = peta.has(dipilih) ? dipilih : '';
@@ -153,8 +83,8 @@ function renderTabel() {
 
 async function muat() {
   try {
-    const data = await getDaftarPembayaran();
-    semua = Array.isArray(data) ? data : [];
+    const data = await getDaftarTagihan();
+    semua = (Array.isArray(data) ? data : []).filter(adaPembayaran);
   } catch (err) {
     semua = [];
     tampilPesan('error', err.message);

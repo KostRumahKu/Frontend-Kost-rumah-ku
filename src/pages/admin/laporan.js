@@ -5,19 +5,69 @@ import { isiTabel } from '../../components/table-kit.js';
 import { requireRole, logout } from '../../utils/auth-guard.js';
 import { $, el, tampilPesan } from '../../utils/dom.js';
 import { formatRupiah } from '../../utils/format.js';
-import { getLaporan } from '../../services/admin-service.js';
+import { getRingkasanKeuangan, getDaftarTransaksi, getDaftarKamar, getDaftarPenyewa, getDaftarTagihan, getDaftarBooking } from '../../services/admin-service.js';
+import { sudahBayar, terlambat, penyewa as namaPenyewa, kamar as namaKamarTagihan, idPenyewa } from '../../components/tagihan-kit.js';
 
 const namaBulan = (kunci) => {
   const [t, b] = kunci.split('-').map(Number);
   return new Intl.DateTimeFormat('id-ID', { month: 'short', year: 'numeric' }).format(new Date(t, b - 1, 1));
 };
 
+const daftar = (d) => (Array.isArray(d) ? d : []);
+
+/** Kumpulkan semua data laporan dari endpoint yang ada, lalu hitung sendiri turunannya. */
+async function kumpulkan(jmlBulan) {
+  const [ringkasan, transaksi, kamar, penyewa, tagihan, booking] = await Promise.all([
+    getRingkasanKeuangan(), getDaftarTransaksi(), getDaftarKamar({ diarsipkan: 'false' }), getDaftarPenyewa(), getDaftarTagihan(), getDaftarBooking(),
+  ]);
+
+  const trx = daftar(transaksi);
+  const sekarang = new Date();
+  const kunci = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  const perBulan = [];
+  for (let i = jmlBulan - 1; i >= 0; i--) perBulan.push({ bulan: kunci(new Date(sekarang.getFullYear(), sekarang.getMonth() - i, 1)), total: 0, keluar: 0 });
+  trx.forEach((t) => {
+    const m = perBulan.find((x) => x.bulan === kunci(new Date(t['tanggal-transaksi'] ?? t['dibuat-pada'])));
+    if (!m) return;
+    if (t['tipe-transaksi'] === 'pemasukan') m.total += t.nominal || 0; else m.keluar += t.nominal || 0;
+  });
+
+  const km = daftar(kamar);
+  const hitungKamar = (st) => km.filter((k) => k.status === st).length;
+  const kmInfo = { total: km.length, kosong: hitungKamar('kosong'), dipesan: hitungKamar('dipesan'), terisi: hitungKamar('terisi'), perbaikan: hitungKamar('perbaikan') };
+  const dapatDisewa = kmInfo.total - kmInfo.perbaikan;
+
+  const pnyw = daftar(penyewa);
+  const tgh = daftar(tagihan);
+  const peta = new Map();
+  tgh.forEach((t) => {
+    const id = idPenyewa(t) ?? namaPenyewa(t);
+    const r = peta.get(id) ?? { nama: namaPenyewa(t), kamar: namaKamarTagihan(t), total: 0, lunas: 0, belumLunas: 0, nunggak: 0 };
+    r.total += t['jumlah-tagihan'] || 0;
+    if (sudahBayar(t)) r.lunas += t['jumlah-tagihan'] || 0; else r.belumLunas += 1;
+    if (terlambat(t)) r.nunggak += 1;
+    peta.set(id, r);
+  });
+
+  return {
+    ringkasan: ringkasan ?? {},
+    perBulan,
+    kamar: kmInfo,
+    penyewaAktif: pnyw.filter((p) => p['id-kamar'] && typeof p['id-kamar'] === 'object').length,
+    hunian: dapatDisewa > 0 ? Math.round((kmInfo.terisi / dapatDisewa) * 100) : 0,
+    nunggak: tgh.filter(terlambat).length,
+    menungguBayar: tgh.filter((t) => !sudahBayar(t) && t['bukti-pembayaran']).length,
+    bookingMenunggu: daftar(booking).filter((b) => /menunggu|pending/i.test(b.status ?? '')).length,
+    perPenyewa: [...peta.values()].sort((a, b) => (b.total - b.lunas) - (a.total - a.lunas)),
+  };
+}
+
 function renderStats(l) {
   $('stats').replaceChildren(
-    StatCard({ label: 'Pemasukan bulan ini', value: formatRupiah(l.pemasukan['bulan-ini']) }),
-    StatCard({ label: 'Total pemasukan', value: formatRupiah(l.pemasukan.total), note: 'Semua pembayaran terverifikasi' }),
+    StatCard({ label: 'Total pemasukan', value: formatRupiah(l.ringkasan['total-pemasukan'] ?? 0) }),
+    StatCard({ label: 'Total pengeluaran', value: formatRupiah(l.ringkasan['total-pengeluaran'] ?? 0), note: `Saldo ${formatRupiah(l.ringkasan.saldo ?? 0)}` }),
     StatCard({ label: 'Kamar kosong', value: l.kamar.kosong, note: `dari ${l.kamar.total} kamar` }),
-    StatCard({ label: 'Penyewa aktif', value: l['penyewa-aktif'] }),
+    StatCard({ label: 'Penyewa aktif', value: l.penyewaAktif }),
   );
 }
 
@@ -55,7 +105,7 @@ function baris(label, nilai, href) {
 }
 
 function renderOperasional(l) {
-  const o = l.operasional;
+  const o = { 'tingkat-hunian': l.hunian, 'tagihan-nunggak': l.nunggak, 'pembayaran-menunggu-verifikasi': l.menungguBayar, 'booking-menunggu': l.bookingMenunggu };
   const wadah = $('operasional');
   wadah.replaceChildren();
 
@@ -95,23 +145,23 @@ function renderOperasional(l) {
 
 const rp = (n) => formatRupiah(n);
 const KOLOM = [
-  { render: (p) => p['nama-penyewa'], cls: 'font-medium' },
-  { render: (p) => p['nama-kamar'] ?? '-' },
-  { render: (p) => rp(p['total-tagihan']), cls: 'whitespace-nowrap' },
-  { render: (p) => rp(p['total-lunas']), cls: 'whitespace-nowrap' },
-  { render: (p) => rp(p['sisa-tagihan']), cls: 'whitespace-nowrap font-medium' },
-  { render: (p) => p['tagihan-belum-lunas'] },
-  { render: (p) => (p['tagihan-nunggak'] > 0 ? `${p['tagihan-nunggak']} tagihan` : '-'), cls: 'whitespace-nowrap' },
+  { render: (p) => p.nama, cls: 'font-medium' },
+  { render: (p) => p.kamar },
+  { render: (p) => rp(p.total), cls: 'whitespace-nowrap' },
+  { render: (p) => rp(p.lunas), cls: 'whitespace-nowrap' },
+  { render: (p) => rp(p.total - p.lunas), cls: 'whitespace-nowrap font-medium' },
+  { render: (p) => p.belumLunas },
+  { render: (p) => (p.nunggak > 0 ? `${p.nunggak} tagihan` : '-'), cls: 'whitespace-nowrap' },
 ];
 
 async function muat() {
   tampilPesan('', '');
   try {
-    const l = await getLaporan($('filter-bulan').value);
+    const l = await kumpulkan(Number($('filter-bulan').value) || 6);
     renderStats(l);
-    renderGrafik(l.pemasukan['per-bulan']);
+    renderGrafik(l.perBulan);
     renderOperasional(l);
-    isiTabel($('tabel-body'), KOLOM, l['pembayaran-penyewa'], 'Belum ada data tagihan penyewa.');
+    isiTabel($('tabel-body'), KOLOM, l.perPenyewa, 'Belum ada data tagihan penyewa.');
   } catch (err) {
     tampilPesan('error', err.message);
   }
