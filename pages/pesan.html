@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Pesan Kamar | KostRumahKu</title>
+  <meta name="description" content="Formulir pemesanan kamar online KostRumahKu untuk calon penyewa." />
+  <link rel="icon" href="/public/favicon.ico" />
+  <link rel="stylesheet" href="/src/css/style.css" />
+  <link rel="stylesheet" href="/src/css/mobile-bottom-nav.css" />
+</head>
+
+<body class="min-h-dvh overflow-x-hidden bg-[var(--color-cream)] font-[family-name:var(--font-body)] text-[var(--color-ink)]">
+
+  <!-- Navbar desktop -->
+  <header id="top-nav" class="sticky top-0 z-30 hidden shadow-sm md:block"></header>
+
+  <!-- Header mobile -->
+  <header class="flex items-center justify-between bg-[var(--color-primary)] px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] text-[var(--color-cream)] md:hidden">
+    <a href="/" class="flex items-center gap-2 font-[family-name:var(--font-heading)] text-base font-semibold tracking-[0.04em]">
+      <svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3 2 12h3v8h5v-5h4v5h5v-8h3L12 3Z" /></svg>
+      KostRumahKu
+    </a>
+  </header>
+
+  <main class="mx-auto max-w-6xl overflow-x-hidden px-4 py-7 pb-28 sm:px-6 md:px-8 md:py-10 md:pb-16">
+    <!-- Header halaman -->
+    <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+      <div>
+        <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--color-accent)]">Pemesanan Online</p>
+        <h1 class="mt-1.5 font-[family-name:var(--font-heading)] text-3xl font-semibold leading-tight tracking-[0.015em] text-[var(--color-primary)] sm:text-[2.25rem]">Pesan Kamar</h1>
+        <p class="mt-2 max-w-xl text-sm leading-relaxed text-[var(--color-muted)]">Lengkapi data calon penyewa dan pilih kamar untuk melanjutkan ke tahap pembayaran.</p>
+      </div>
+      <a href="/kamar" class="inline-flex w-fit items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-semibold tracking-[0.01em] text-[var(--color-primary)] transition-colors duration-200 hover:bg-[var(--color-primary)]/5 hover:text-[var(--color-primary-dark)]">
+        <span aria-hidden="true">&larr;</span>
+        <span>Lihat Katalog Kamar</span>
+      </a>
+    </div>
+
+    <!-- Indikator Alur Pemesanan (3 Tahap) -->
+    <ol aria-label="Tahapan pemesanan kamar" class="mt-7 grid grid-cols-3 gap-2 rounded-2xl border border-[var(--color-primary)]/12 bg-[var(--color-surface)] p-3.5 shadow-sm sm:gap-4 sm:px-6 sm:py-4">
+      <li aria-current="step" class="flex flex-col items-center gap-2 text-center sm:flex-row sm:gap-3 sm:text-left">
+        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)] text-xs font-bold text-[var(--color-cream)] ring-4 ring-[var(--color-primary)]/15">1</span>
+        <div class="min-w-0">
+          <p class="text-xs font-semibold leading-snug text-[var(--color-primary)] sm:text-[13px]">Isi Data &amp; Pilih Kamar</p>
+          <p class="mt-0.5 hidden text-[11px] text-[var(--color-accent)] sm:block">Tahap saat ini</p>
+        </div>
+      </li>
+      <li class="flex flex-col items-center gap-2 text-center sm:flex-row sm:gap-3 sm:border-l sm:border-[var(--color-primary)]/10 sm:pl-4 sm:text-left">
+        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--color-primary)]/20 bg-[var(--color-cream)]/80 text-xs font-semibold text-[var(--color-muted)]">2</span>
+        <div class="min-w-0">
+          <p class="text-xs font-medium leading-snug text-[var(--color-muted)] sm:text-[13px]">Transfer &amp; Unggah Bukti</p>
+          <p class="mt-0.5 hidden text-[11px] text-[var(--color-muted)]/75 sm:block">Berikutnya</p>
+        </div>
+      </li>
+      <li class="flex flex-col items-center gap-2 text-center sm:flex-row sm:gap-3 sm:border-l sm:border-[var(--color-primary)]/10 sm:pl-4 sm:text-left">
+        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--color-primary)]/20 bg-[var(--color-cream)]/80 text-xs font-semibold text-[var(--color-muted)]">3</span>
+        <div class="min-w-0">
+          <p class="text-xs font-medium leading-snug text-[var(--color-muted)] sm:text-[13px]">Validasi &amp; Akun Email</p>
+          <p class="mt-0.5 hidden text-[11px] text-[var(--color-muted)]/75 sm:block">Menunggu</p>
+        </div>
+      </li>
+    </ol>
+
+    <p id="page-error" role="alert" class="mt-5 hidden rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800"></p>
+
+    <div class="mt-7 grid gap-6 lg:grid-cols-12 lg:items-start lg:gap-7">
+
+      <!-- Kiri: Formulir Booking -->
+      <form id="form-booking" class="space-y-7 rounded-2xl border border-[var(--color-primary)]/12 bg-[var(--color-surface)] p-5 shadow-sm sm:p-7 lg:col-span-8" novalidate>
+
+        <!-- Data Diri -->
+        <div>
+          <div class="border-b border-[var(--color-primary)]/10 pb-3.5">
+            <h2 class="font-[family-name:var(--font-heading)] text-xl font-semibold tracking-[0.01em] text-[var(--color-primary)]">Data Calon Penyewa</h2>
+            <p class="mt-1 text-xs leading-relaxed text-[var(--color-muted)]">Email yang dimasukkan akan digunakan untuk mengirim tautan status booking dan akun login setelah disetujui admin.</p>
+          </div>
+
+          <div class="mt-5 grid gap-x-5 gap-y-4 sm:grid-cols-2">
+            <div class="sm:col-span-2">
+              <label for="b-nama" class="mb-1.5 block text-[13px] font-semibold tracking-[0.01em] text-[var(--color-ink)]">Nama Lengkap <span class="text-red-600">*</span></label>
+              <input id="b-nama" type="text" required autocomplete="name" placeholder="Nama lengkap sesuai KTP"
+                class="h-11 w-full rounded-xl border border-[var(--color-primary)]/25 bg-[var(--color-cream)]/45 px-4 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-muted)]/65 transition-all duration-200 focus:border-[var(--color-primary)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/35" />
+            </div>
+
+            <div>
+              <label for="b-email" class="mb-1.5 block text-[13px] font-semibold tracking-[0.01em] text-[var(--color-ink)]">Alamat Email <span class="text-red-600">*</span></label>
+              <input id="b-email" type="email" required autocomplete="email" placeholder="nama@email.com" aria-describedby="b-email-error"
+                class="h-11 w-full rounded-xl border border-[var(--color-primary)]/25 bg-[var(--color-cream)]/45 px-4 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-muted)]/65 transition-all duration-200 focus:border-[var(--color-primary)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/35 aria-[invalid=true]:border-red-600 aria-[invalid=true]:focus:ring-red-200" />
+              <p id="b-email-error" role="alert" class="mt-1.5 hidden text-xs font-medium text-red-600"></p>
+            </div>
+
+            <div>
+              <label for="b-telepon" class="mb-1.5 block text-[13px] font-semibold tracking-[0.01em] text-[var(--color-ink)]">Nomor Telepon / WA <span class="text-red-600">*</span></label>
+              <div id="wrap-telepon" class="flex h-11 overflow-hidden rounded-xl border border-[var(--color-primary)]/30 bg-[var(--color-cream)]/45 transition-all duration-200 focus-within:border-[var(--color-primary)] focus-within:bg-white focus-within:ring-2 focus-within:ring-[var(--color-accent)]/35">
+                <span class="flex select-none items-center border-r border-[var(--color-primary)]/15 bg-[var(--color-cream)] px-3.5 text-sm font-semibold text-[var(--color-primary)]">62</span>
+                <input id="b-telepon" type="tel" required inputmode="numeric" autocomplete="tel-national" placeholder="81234567890" aria-describedby="b-telepon-error"
+                  class="min-w-0 flex-1 bg-transparent px-3.5 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-muted)]/65 focus:outline-none" />
+              </div>
+              <p id="b-telepon-error" role="alert" class="mt-1.5 hidden text-xs font-medium text-red-600"></p>
+            </div>
+
+            <div>
+              <label for="b-darurat-nama" class="mb-1.5 block text-[13px] font-semibold tracking-[0.01em] text-[var(--color-ink)]">Nama Kontak Darurat <span class="text-red-600">*</span></label>
+              <input id="b-darurat-nama" type="text" required placeholder="Orang tua / keluarga"
+                class="h-11 w-full rounded-xl border border-[var(--color-primary)]/25 bg-[var(--color-cream)]/45 px-4 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-muted)]/65 transition-all duration-200 focus:border-[var(--color-primary)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/35" />
+            </div>
+
+            <div>
+              <label for="b-darurat-telp" class="mb-1.5 block text-[13px] font-semibold tracking-[0.01em] text-[var(--color-ink)]">Nomor Kontak Darurat <span class="text-red-600">*</span></label>
+              <div id="wrap-darurat-telp" class="flex h-11 overflow-hidden rounded-xl border border-[var(--color-primary)]/30 bg-[var(--color-cream)]/45 transition-all duration-200 focus-within:border-[var(--color-primary)] focus-within:bg-white focus-within:ring-2 focus-within:ring-[var(--color-accent)]/35">
+                <span class="flex select-none items-center border-r border-[var(--color-primary)]/15 bg-[var(--color-cream)] px-3.5 text-sm font-semibold text-[var(--color-primary)]">62</span>
+                <input id="b-darurat-telp" type="tel" required inputmode="numeric" autocomplete="tel-national" placeholder="81234567890" aria-describedby="b-darurat-telp-error"
+                  class="min-w-0 flex-1 bg-transparent px-3.5 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-muted)]/65 focus:outline-none" />
+              </div>
+              <p id="b-darurat-telp-error" role="alert" class="mt-1.5 hidden text-xs font-medium text-red-600"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pilihan Kamar & Masa Sewa -->
+        <div class="border-t border-[var(--color-primary)]/10 pt-6">
+          <div class="pb-1">
+            <h2 class="font-[family-name:var(--font-heading)] text-xl font-semibold tracking-[0.01em] text-[var(--color-primary)]">Pilihan Kamar &amp; Jadwal Masuk</h2>
+            <p class="mt-1 text-xs leading-relaxed text-[var(--color-muted)]">Pilih tipe kamar, lantai yang tersedia, durasi awal, serta tanggal mulai menempati kost.</p>
+          </div>
+
+          <div class="mt-5 grid gap-x-5 gap-y-4 sm:grid-cols-2">
+            <div>
+              <label for="b-tipe" class="mb-1.5 block text-[13px] font-semibold tracking-[0.01em] text-[var(--color-ink)]">Tipe Kamar <span class="text-red-600">*</span></label>
+              <div class="relative">
+                <select id="b-tipe" required
+                  class="h-11 w-full appearance-none rounded-xl border border-[var(--color-primary)]/25 bg-[var(--color-cream)]/45 pl-4 pr-10 text-sm text-[var(--color-ink)] transition-all duration-200 focus:border-[var(--color-primary)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/35">
+                  <option value="">Memuat tipe kamar...</option>
+                </select>
+                <svg class="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-primary)]/70" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+              </div>
+              <p id="b-tipe-stok" class="mt-1.5 text-xs text-[var(--color-muted)]"></p>
+            </div>
+
+            <div>
+              <label for="b-lantai" class="mb-1.5 block text-[13px] font-semibold tracking-[0.01em] text-[var(--color-ink)]">Pilihan Lantai <span class="text-red-600">*</span></label>
+              <div class="relative">
+                <select id="b-lantai" required
+                  class="h-11 w-full appearance-none rounded-xl border border-[var(--color-primary)]/25 bg-[var(--color-cream)]/45 pl-4 pr-10 text-sm text-[var(--color-ink)] transition-all duration-200 focus:border-[var(--color-primary)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/35 disabled:cursor-not-allowed disabled:border-[var(--color-primary)]/15 disabled:bg-[var(--color-cream)] disabled:font-medium disabled:text-[var(--color-primary)] disabled:opacity-90">
+                  <option value="1">Lantai 1</option>
+                  <option value="2">Lantai 2</option>
+                  <option value="3">Lantai 3</option>
+                </select>
+                <svg class="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-primary)]/70" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+              </div>
+              <p id="b-lantai-info" class="mt-1.5 text-xs text-[var(--color-muted)]"></p>
+            </div>
+
+            <div>
+              <label for="b-durasi" class="mb-1.5 block text-[13px] font-semibold tracking-[0.01em] text-[var(--color-ink)]">Durasi Sewa Awal <span class="text-red-600">*</span></label>
+              <div class="flex h-11 overflow-hidden rounded-xl border border-[var(--color-primary)]/25 bg-[var(--color-cream)]/45 transition-all duration-200 focus-within:border-[var(--color-primary)] focus-within:bg-white focus-within:ring-2 focus-within:ring-[var(--color-accent)]/35">
+                <button id="btn-durasi-kurang" type="button" aria-label="Kurangi durasi sewa"
+                  class="flex w-11 shrink-0 cursor-pointer items-center justify-center border-r border-[var(--color-primary)]/15 bg-[var(--color-cream)] text-base font-bold text-[var(--color-primary)] transition-colors duration-200 hover:bg-[var(--color-primary)] hover:text-[var(--color-cream)] active:bg-[var(--color-primary-dark)] disabled:cursor-not-allowed disabled:opacity-45">
+                  &minus;
+                </button>
+                <div class="flex min-w-0 flex-1 items-center justify-center gap-1.5 px-2">
+                  <input id="b-durasi" type="number" required min="1" max="36" step="1" value="1" inputmode="numeric" aria-label="Jumlah bulan sewa"
+                    class="w-12 bg-transparent text-center text-sm font-semibold text-[var(--color-ink)] focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none" />
+                  <span class="select-none text-sm font-medium text-[var(--color-muted)]">Bulan</span>
+                </div>
+                <button id="btn-durasi-tambah" type="button" aria-label="Tambah durasi sewa"
+                  class="flex w-11 shrink-0 cursor-pointer items-center justify-center border-l border-[var(--color-primary)]/15 bg-[var(--color-cream)] text-base font-bold text-[var(--color-primary)] transition-colors duration-200 hover:bg-[var(--color-primary)] hover:text-[var(--color-cream)] active:bg-[var(--color-primary-dark)] disabled:cursor-not-allowed disabled:opacity-45">
+                  +
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label for="b-mulai" class="mb-1.5 block text-[13px] font-semibold tracking-[0.01em] text-[var(--color-ink)]">Tanggal Mulai Sewa <span class="text-red-600">*</span></label>
+              <input id="b-mulai" type="date" required aria-describedby="b-mulai-error"
+                class="h-11 w-full cursor-pointer select-none rounded-xl border border-[var(--color-primary)]/25 bg-[var(--color-cream)]/45 px-4 text-sm text-[var(--color-ink)] transition-all duration-200 focus:border-[var(--color-primary)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/35 aria-[invalid=true]:border-red-600 aria-[invalid=true]:focus:ring-red-200" />
+              <p id="b-mulai-error" role="alert" class="mt-1.5 hidden text-xs font-medium text-red-600"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-3 border-t border-[var(--color-primary)]/10 pt-6">
+          <button id="btn-submit-booking" type="submit"
+            class="inline-flex h-12 w-full cursor-pointer items-center justify-center rounded-xl bg-[var(--color-primary)] px-7 text-sm font-semibold tracking-[0.02em] text-[var(--color-cream)] shadow-sm transition-all duration-200 ease-out hover:bg-[var(--color-primary-dark)] hover:shadow-md active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)] disabled:cursor-not-allowed disabled:opacity-60">
+            Buat Pesanan &amp; Lanjut Bayar
+          </button>
+          <p class="text-center text-xs leading-relaxed text-[var(--color-muted)]">Setelah booking dibuat, kamu akan langsung diarahkan ke halaman pembayaran.</p>
+        </div>
+      </form>
+
+      <!-- Kanan: Ringkasan Pesanan (sticky di desktop) + Pintasan Cek Status Booking -->
+      <aside class="space-y-5 lg:sticky lg:top-24 lg:col-span-4">
+        <!-- Ringkasan Harga -->
+        <section class="rounded-2xl border border-[var(--color-primary)]/12 bg-[var(--color-surface)] p-5 shadow-sm sm:p-6">
+          <div class="border-b border-[var(--color-primary)]/10 pb-3.5">
+            <h2 class="font-[family-name:var(--font-heading)] text-lg font-semibold tracking-[0.01em] text-[var(--color-primary)]">Ringkasan Pesanan</h2>
+            <p class="mt-0.5 text-xs text-[var(--color-muted)]">Estimasi biaya sesuai pilihan kamarmu.</p>
+          </div>
+
+          <dl class="mt-4 space-y-3 text-sm">
+            <div class="flex items-baseline justify-between gap-3">
+              <dt class="text-[var(--color-muted)]">Tipe Kamar</dt>
+              <dd id="sum-tipe" class="text-right font-semibold capitalize text-[var(--color-ink)]">—</dd>
+            </div>
+            <div class="flex items-baseline justify-between gap-3">
+              <dt class="text-[var(--color-muted)]">Lantai</dt>
+              <dd id="sum-lantai" class="text-right font-medium text-[var(--color-ink)]">Lantai 1</dd>
+            </div>
+            <div class="flex items-baseline justify-between gap-3">
+              <dt class="text-[var(--color-muted)]">Harga / Bulan</dt>
+              <dd id="sum-harga" class="text-right font-medium text-[var(--color-ink)]">—</dd>
+            </div>
+            <div class="flex items-baseline justify-between gap-3">
+              <dt class="text-[var(--color-muted)]">Durasi Sewa</dt>
+              <dd id="sum-durasi" class="text-right font-medium text-[var(--color-ink)]">1 Bulan</dd>
+            </div>
+          </dl>
+
+          <div class="mt-5 flex items-baseline justify-between gap-3 rounded-xl border border-[var(--color-primary)]/10 bg-[var(--color-cream)]/75 px-4 py-3.5">
+            <span class="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--color-muted)]">Estimasi Total</span>
+            <span id="sum-total" class="font-[family-name:var(--font-heading)] text-2xl font-bold tracking-[0.01em] text-[var(--color-primary)]">—</span>
+          </div>
+        </section>
+
+        <!-- Sudah Punya ID Pemesanan? -->
+        <form id="form-cek-cepat" class="rounded-2xl border border-[var(--color-primary)]/12 bg-[var(--color-surface)] p-5 shadow-sm sm:p-6" novalidate>
+          <h2 class="font-[family-name:var(--font-heading)] text-lg font-semibold tracking-[0.01em] text-[var(--color-primary)]">Sudah Punya ID Pemesanan?</h2>
+          <p class="mt-1.5 text-xs leading-relaxed text-[var(--color-muted)]">
+            Masukkan ID pemesananmu untuk melihat status validasi admin atau mengunggah bukti pembayaran.
+          </p>
+          <div class="mt-4 flex gap-2">
+            <input id="cek-id-cepat" type="text" placeholder="Masukkan ID Pemesanan"
+              class="h-11 min-w-0 flex-1 rounded-xl border border-[var(--color-primary)]/25 bg-[var(--color-cream)]/45 px-3.5 font-mono text-xs text-[var(--color-ink)] placeholder:font-sans placeholder:text-[var(--color-muted)]/65 transition-all duration-200 focus:border-[var(--color-primary)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/35" />
+            <button type="submit"
+              class="inline-flex h-11 shrink-0 cursor-pointer items-center justify-center rounded-xl bg-[var(--color-primary)] px-4 text-xs font-semibold tracking-[0.02em] text-[var(--color-cream)] shadow-xs transition-all duration-200 ease-out hover:bg-[var(--color-primary-dark)] hover:shadow-sm active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent)]">
+              Cek Status
+            </button>
+          </div>
+        </form>
+      </aside>
+
+    </div>
+  </main>
+
+  <div id="bottom-nav" class="md:hidden"></div>
+
+  <script type="module">
+    try {
+      const r = await fetch('/config');
+      window.__ENV__ = await r.json();
+    } catch { window.__ENV__ = {}; }
+    await import('/src/pages/pesan.js');
+  </script>
+</body>
+</html>

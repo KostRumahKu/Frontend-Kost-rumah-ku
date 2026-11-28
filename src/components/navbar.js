@@ -4,6 +4,7 @@ const ICON_PATH = '/public/icons';
 export const defaultItems = [
   { id: 'beranda', label: 'Beranda', icon: 'home.webp', href: '/' },
   { id: 'kamar', label: 'Kamar', icon: 'rooms.webp', href: '/kamar' },
+  { id: 'pesan', label: 'Pesan', icon: 'rooms.webp', href: '/pesan' },
   { id: 'fasilitas', label: 'Fasilitas', icon: 'facilities.webp', href: 'fasilitas' },
   { id: 'testimoni', label: 'Testimoni', icon: 'testimonial.webp', href: 'testimoni' },
   { id: 'lokasi', label: 'Lokasi', icon: 'location.webp', href: 'lokasi' },
@@ -31,7 +32,7 @@ function bottomItem(item) {
 }
 
 function actionItem(a) {
-  const cls = 'rounded-lg border border-[var(--color-cream)] bg-[var(--color-cream)] px-5 py-2 font-semibold text-[var(--color-primary)] shadow-sm transition-colors hover:border-[var(--color-cream)]/70 hover:bg-[var(--color-primary-dark)] hover:text-[var(--color-cream)]';
+  const cls = 'rounded-lg border border-[var(--color-cream)] bg-[var(--color-cream)] px-5 py-2 font-[family-name:var(--font-body)] font-semibold tracking-[0.02em] text-[var(--color-primary)] shadow-sm transition-colors hover:border-[var(--color-cream)]/70 hover:bg-[var(--color-primary-dark)] hover:text-[var(--color-cream)]';
   return a.href
     ? `<a href="${a.href}" class="${cls}">${a.label}</a>`
     : `<button type="button" data-action="${a.action}" class="${cls}">${a.label}</button>`;
@@ -43,8 +44,8 @@ function renderTop({ items, brand, actions }) {
   return `
     <div class="bg-[var(--color-primary)] text-[var(--color-cream)] border-b border-white/10">
       <div class="mx-auto flex w-full max-w-[90rem] items-center justify-between px-6 py-3.5 md:px-10">
-        <a href="${brand.href}" class="flex items-center gap-2.5 font-[family-name:var(--font-heading)] text-lg font-semibold tracking-wide transition-opacity hover:opacity-90">${logo}${brand.name}</a>
-        <nav aria-label="Main"><ul class="flex items-center gap-1.5 text-sm font-medium">${links}</ul></nav>
+        <a href="${brand.href}" class="flex items-center gap-2.5 font-[family-name:var(--font-heading)] text-lg font-semibold tracking-[0.04em] transition-opacity hover:opacity-90">${logo}${brand.name}</a>
+        <nav aria-label="Main"><ul class="flex items-center gap-1.5 font-[family-name:var(--font-body)] text-sm font-medium tracking-[0.025em]">${links}</ul></nav>
         <div class="flex items-center gap-2 text-sm">${actions.map(actionItem).join('')}</div>
       </div>
     </div>`;

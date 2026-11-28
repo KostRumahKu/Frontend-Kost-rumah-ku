@@ -48,6 +48,31 @@ function formatTanggalSingkat(iso) {
   }).format(d);
 }
 
+function tambahBulan(date, bulan = 1) {
+  const d = new Date(date.getTime());
+  const hariAsli = d.getDate();
+  d.setDate(1);
+  d.setMonth(d.getMonth() + Math.max(1, Number(bulan) || 1));
+  const hariTerakhir = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(hariAsli, hariTerakhir));
+  return d;
+}
+
+function hitungAkhirTagihanLunas(tagihan, hargaBulanan) {
+  if (!tagihan) return null;
+  const dasar = tagihan['tanggal-jatuh-tempo'] ?? tagihan['tanggal-mulai'] ?? tagihan['dibuat-pada'];
+  if (!dasar) return null;
+  const d = new Date(dasar);
+  if (Number.isNaN(d.getTime())) return null;
+
+  let bulan = Number(tagihan['durasi-bulan'] ?? tagihan['jumlah-bulan'] ?? 0);
+  if (!bulan && Number(hargaBulanan) > 0 && Number(tagihan['jumlah-tagihan']) > 0) {
+    const rasio = Number(tagihan['jumlah-tagihan']) / Number(hargaBulanan);
+    if (Number.isInteger(rasio) && rasio >= 1 && rasio <= 24) bulan = rasio;
+  }
+  return tambahBulan(d, bulan || 1);
+}
+
 const BULAN_MAP = {
   januari: 0, februari: 1, febuari: 1, maret: 2, april: 3, mei: 4, juni: 5,
   juli: 6, agustus: 7, september: 8, oktober: 9, november: 10, desember: 11,
@@ -253,23 +278,51 @@ async function muatDashboard() {
     );
 
     // Cari batas akhir masa sewa:
-    // Prioritaskan tanggal berakhir paling jauh antara data sewa & tagihan terjauh yang sudah LUNAS
+    // Prioritaskan tanggal berakhir paling jauh antara data sewa, (tanggal-mulai + durasi),
+    // dan akhir periode dari tagihan terjauh yang sudah LUNAS (+ durasi bulan tagihan)
     const tagihanLunasTerjauh = tagihanList.find((t) =>
       ['lunas', 'paid', 'terverifikasi'].includes(normalStatus(t.status))
     );
 
+    const tglMulaiSewa = pickFirst(
+      sewaObj['tanggal-mulai'],
+      sewaObj['mulai-sewa'],
+      penghuniAktifKamar['tanggal-mulai'],
+      profil['tanggal-mulai'],
+      data?.['tanggal-mulai'],
+    );
+    const durasiSewa = Number(pickFirst(
+      sewaObj['durasi-bulan'],
+      penghuniAktifKamar['durasi-bulan'],
+      profil['durasi-bulan'],
+      data?.['durasi-bulan'],
+      0,
+    ));
+    const akhirDariMulai =
+      tglMulaiSewa && durasiSewa > 0 && !Number.isNaN(new Date(tglMulaiSewa).getTime())
+        ? tambahBulan(new Date(tglMulaiSewa), durasiSewa)
+        : null;
+
+    const akhirDariTagihanLunas = hitungAkhirTagihanLunas(tagihanLunasTerjauh, harga);
+
     const kandidatAkhir = [
       sewaObj['tanggal-berakhir'],
+      sewaObj['tanggal-habis'],
+      sewaObj['tanggal-selesai'],
       sewaObj['akhir-sewa'],
       sewaObj['selesai-sewa'],
+      sewaObj.tanggalBerakhir,
       kamarObj['tanggal-berakhir'],
       penghuniAktifKamar['tanggal-berakhir'],
+      penghuniAktifKamar['tanggal-habis'],
       profil['tanggal-berakhir'],
       data?.['tanggal-berakhir'],
-      tagihanLunasTerjauh?.['tanggal-jatuh-tempo'],
+      data?.['tanggal-habis'],
+      akhirDariMulai,
+      akhirDariTagihanLunas,
     ]
       .filter(Boolean)
-      .map((iso) => new Date(iso))
+      .map((val) => (val instanceof Date ? val : new Date(val)))
       .filter((d) => !Number.isNaN(d.getTime()))
       .sort((a, b) => b.getTime() - a.getTime());
 

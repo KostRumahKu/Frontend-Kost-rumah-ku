@@ -61,6 +61,12 @@ app.get("/", (_req, res) =>
   res.sendFile(path.join(__dirname, "pages", "index.html")));
 app.get("/kamar", (_req, res) =>
   res.sendFile(path.join(__dirname, "pages", "kamar.html")));
+app.get("/pesan", (_req, res) =>
+  res.sendFile(path.join(__dirname, "pages", "pesan.html")));
+app.get("/booking", (_req, res) =>
+  res.sendFile(path.join(__dirname, "pages", "pesan.html")));
+app.get("/booking/:id", (_req, res) =>
+  res.sendFile(path.join(__dirname, "pages", "booking-detail.html")));
 
 app.get("/auth/login",          (_req, res) => res.sendFile(path.join(__dirname, "pages", "auth", "login.html")));
 app.get("/auth/admin-login",    (_req, res) => res.sendFile(path.join(__dirname, "pages", "auth", "admin-login.html")));

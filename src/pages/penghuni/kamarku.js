@@ -217,22 +217,71 @@ async function muatKamar() {
       tagihanTerbaru['jumlah-tagihan'],
     );
 
+    const tambahBulan = (date, bulan = 1) => {
+      const d = new Date(date.getTime());
+      const hariAsli = d.getDate();
+      d.setDate(1);
+      d.setMonth(d.getMonth() + Math.max(1, Number(bulan) || 1));
+      const hariTerakhir = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+      d.setDate(Math.min(hariAsli, hariTerakhir));
+      return d;
+    };
+
     const tagihanLunasTerjauh = tagihanList.find((t) =>
       ['lunas', 'paid', 'terverifikasi'].includes(normalStatus(t.status))
     );
 
+    const tglMulaiSewa = pickFirst(
+      sewaObj['tanggal-mulai'],
+      sewaObj['mulai-sewa'],
+      penghuniAktifKamar['tanggal-mulai'],
+      profil['tanggal-mulai'],
+      data?.['tanggal-mulai'],
+    );
+    const durasiSewa = Number(pickFirst(
+      sewaObj['durasi-bulan'],
+      penghuniAktifKamar['durasi-bulan'],
+      profil['durasi-bulan'],
+      data?.['durasi-bulan'],
+      0,
+    ));
+    const akhirDariMulai =
+      tglMulaiSewa && durasiSewa > 0 && !Number.isNaN(new Date(tglMulaiSewa).getTime())
+        ? tambahBulan(new Date(tglMulaiSewa), durasiSewa)
+        : null;
+
+    let akhirDariTagihanLunas = null;
+    if (tagihanLunasTerjauh) {
+      const dasar = tagihanLunasTerjauh['tanggal-jatuh-tempo'] ?? tagihanLunasTerjauh['tanggal-mulai'] ?? tagihanLunasTerjauh['dibuat-pada'];
+      const d = dasar ? new Date(dasar) : null;
+      if (d && !Number.isNaN(d.getTime())) {
+        let bulan = Number(tagihanLunasTerjauh['durasi-bulan'] ?? tagihanLunasTerjauh['jumlah-bulan'] ?? 0);
+        if (!bulan && Number(harga) > 0 && Number(tagihanLunasTerjauh['jumlah-tagihan']) > 0) {
+          const rasio = Number(tagihanLunasTerjauh['jumlah-tagihan']) / Number(harga);
+          if (Number.isInteger(rasio) && rasio >= 1 && rasio <= 24) bulan = rasio;
+        }
+        akhirDariTagihanLunas = tambahBulan(d, bulan || 1);
+      }
+    }
+
     const kandidatAkhir = [
       sewaObj['tanggal-berakhir'],
+      sewaObj['tanggal-habis'],
+      sewaObj['tanggal-selesai'],
       sewaObj['akhir-sewa'],
       sewaObj['selesai-sewa'],
+      sewaObj.tanggalBerakhir,
       kamarObj['tanggal-berakhir'],
       penghuniAktifKamar['tanggal-berakhir'],
+      penghuniAktifKamar['tanggal-habis'],
       profil['tanggal-berakhir'],
       data?.['tanggal-berakhir'],
-      tagihanLunasTerjauh?.['tanggal-jatuh-tempo'],
+      data?.['tanggal-habis'],
+      akhirDariMulai,
+      akhirDariTagihanLunas,
     ]
       .filter(Boolean)
-      .map((iso) => new Date(iso))
+      .map((val) => (val instanceof Date ? val : new Date(val)))
       .filter((d) => !Number.isNaN(d.getTime()))
       .sort((a, b) => b.getTime() - a.getTime());
 

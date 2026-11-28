@@ -2,7 +2,6 @@
 import { mountNavbar } from '../components/navbar.js';
 import { landingNavItems, mountMobileBottomNav } from '../components/mobile-bottom-nav.js';
 import { API_BASE_URL } from '../utils/config.js';
-import { formatRupiah } from '../utils/format.js';
 import { $, pasangDialog } from '../utils/dom.js';
 
 mountNavbar({
@@ -129,17 +128,17 @@ function normalisasiItemKatalog(item) {
 
 function buatKartu(tipe) {
   const card = document.createElement('article');
-  // Semua 3 kartu memakai desain tema coklat KostRumahKu yang seragam dan elegan
-  card.className = 'grid h-[24rem] w-full shrink-0 overflow-hidden rounded-2xl border border-[var(--color-primary-dark)]/40 bg-[var(--color-primary)] text-[var(--color-cream)] shadow-lg sm:grid-cols-12 md:h-[25.5rem] md:w-[calc(50%-0.75rem)]';
+  // Semua 3 kartu memakai desain tema coklat KostRumahKu yang seragam, rapi, dan responsif dengan subtle hover
+  card.className = 'group/card flex w-full shrink-0 flex-col overflow-hidden rounded-2xl border border-[var(--color-primary-dark)]/45 bg-[var(--color-primary)] text-[var(--color-cream)] shadow-lg transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-[var(--color-accent)]/60 hover:shadow-xl sm:grid sm:h-[22.5rem] sm:grid-cols-12 lg:h-[23.5rem] lg:w-[calc(50%-0.75rem)]';
 
-  // ── Panel Kiri: Foto Kamar dari Backend ─────────────────────────────────────
+  // ── Panel Kiri (atas di mobile): Foto Kamar dari Backend ────────────────────
   const left = document.createElement('div');
-  left.className = 'relative hidden h-full bg-black/20 sm:col-span-5 sm:block sm:border-r sm:border-black/25';
+  left.className = 'relative h-44 w-full shrink-0 overflow-hidden bg-black/20 sm:col-span-5 sm:h-full sm:border-r sm:border-black/25';
 
   const img = document.createElement('img');
   img.src = tipe.fotoUtama;
   img.alt = tipe.label;
-  img.className = 'h-full w-full object-cover';
+  img.className = 'h-full w-full object-cover transition-transform duration-500 ease-out group-hover/card:scale-[1.03]';
   img.addEventListener('error', () => {
     if (!img.src.endsWith('/public/img/halaman.webp')) {
       img.src = '/public/img/halaman.webp';
@@ -148,74 +147,88 @@ function buatKartu(tipe) {
   left.append(img);
 
   const overlay = document.createElement('div');
-  overlay.className = 'pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent';
+  overlay.className = 'pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent';
   left.append(overlay);
 
+  // Badge ketersediaan (hijau untuk tersedia, merah lembut untuk penuh)
   const stokBadge = document.createElement('span');
   const tersedia = tipe.jumlahTersedia > 0;
   stokBadge.className = tersedia
-    ? 'absolute bottom-3 left-3 rounded-full bg-green-100/95 px-3 py-1 text-[11px] font-semibold text-green-900 shadow-sm'
-    : 'absolute bottom-3 left-3 rounded-full bg-red-100/95 px-3 py-1 text-[11px] font-semibold text-red-800 shadow-sm';
-  stokBadge.textContent = tersedia
-    ? `${tipe.jumlahTersedia} Kamar Tersedia`
-    : 'Penuh Saat Ini';
+    ? 'absolute bottom-3 left-3 inline-flex h-7 items-center gap-1.5 rounded-full bg-green-100/95 px-3 font-[family-name:var(--font-body)] text-[11px] font-semibold leading-none tracking-[0.015em] text-green-900 shadow-sm backdrop-blur-[2px]'
+    : 'absolute bottom-3 left-3 inline-flex h-7 items-center gap-1.5 rounded-full bg-red-100/95 px-3 font-[family-name:var(--font-body)] text-[11px] font-semibold leading-none tracking-[0.015em] text-red-800 shadow-sm backdrop-blur-[2px]';
+  const stokDot = document.createElement('span');
+  stokDot.className = tersedia ? 'h-1.5 w-1.5 rounded-full bg-green-600' : 'h-1.5 w-1.5 rounded-full bg-red-600';
+  stokDot.setAttribute('aria-hidden', 'true');
+  const stokText = document.createElement('span');
+  stokText.textContent = tersedia ? `${tipe.jumlahTersedia} Kamar Tersedia` : 'Penuh Saat Ini';
+  stokBadge.append(stokDot, stokText);
   left.append(stokBadge);
 
-  // ── Panel Kanan: Informasi Kamar ────────────────────────────────────────────
+  // ── Panel Kanan: Informasi Kamar Terstruktur ────────────────────────────────
   const right = document.createElement('div');
-  right.className = 'col-span-12 flex h-full flex-col justify-between p-5 sm:col-span-7 md:p-6';
+  right.className = 'flex flex-1 flex-col justify-between p-5 sm:col-span-7 sm:h-full sm:px-5 sm:py-4 lg:px-6 lg:py-5';
 
   const topContent = document.createElement('div');
 
   // 1. Pill Tipe Kamar
   const pill = document.createElement('span');
-  pill.className = 'inline-block rounded-full bg-[var(--color-surface)] px-4 py-1.5 font-[family-name:var(--font-heading)] text-xs font-semibold text-[var(--color-primary)] shadow-xs';
+  pill.className = 'inline-flex h-6 items-center rounded-full bg-[var(--color-cream)] px-3.5 font-[family-name:var(--font-body)] text-[11px] font-semibold leading-none tracking-[0.04em] text-[var(--color-primary)] shadow-2xs';
   pill.textContent = tipe.badge;
 
-  // 2. Judul + garis bawah
+  // 2. Judul + garis bawah (Playfair Display untuk nama kamar)
   const title = document.createElement('h2');
-  title.className = 'mt-3 border-b border-[var(--color-cream)]/30 pb-1.5 font-[family-name:var(--font-heading)] text-xl font-semibold text-[var(--color-cream)]';
+  title.className = 'mt-2.5 border-b border-[var(--color-cream)]/25 pb-1.5 font-[family-name:var(--font-heading)] text-[1.3rem] font-semibold leading-snug tracking-[0.015em] text-[var(--color-cream)]';
   title.textContent = tipe.label;
 
-  // 3. Deskripsi
+  // 3. Deskripsi (Lato, nyaman dibaca, tinggi konsisten)
   const desc = document.createElement('p');
-  desc.className = 'mt-2.5 line-clamp-3 text-xs leading-relaxed text-[var(--color-cream)]/90';
+  desc.className = 'mt-2 line-clamp-3 min-h-[3.6rem] font-[family-name:var(--font-body)] text-[12.5px] font-normal leading-[1.55] tracking-[0.01em] text-[var(--color-cream)]/90';
   desc.textContent = tipe.deskripsi;
 
-  // 4. Box Harga dari Backend
+  // 4. Price Badge dari Backend (Playfair Display untuk nominal harga + / bulan konsisten)
   const priceWrap = document.createElement('div');
-  priceWrap.className = 'mt-3.5';
-  const priceBox = document.createElement('span');
-  priceBox.className = 'inline-block rounded-lg bg-[var(--color-surface)] px-3.5 py-1.5 font-[family-name:var(--font-heading)] text-base font-bold text-[var(--color-primary)] shadow-xs';
-  priceBox.textContent = `${formatHargaKartu(tipe.harga)} / bln`;
+  priceWrap.className = 'mt-3';
+  const priceBox = document.createElement('div');
+  priceBox.className = 'inline-flex items-baseline gap-1.5 rounded-xl bg-[var(--color-cream)] px-3.5 py-1.5 shadow-xs';
+  const priceNominal = document.createElement('span');
+  priceNominal.className = 'font-[family-name:var(--font-heading)] text-[1.1rem] font-bold leading-none tracking-[0.01em] text-[var(--color-primary)]';
+  priceNominal.textContent = formatHargaKartu(tipe.harga);
+  const priceUnit = document.createElement('span');
+  priceUnit.className = 'font-[family-name:var(--font-body)] text-[11px] font-medium leading-none tracking-[0.02em] text-[var(--color-muted)]';
+  priceUnit.textContent = '/ bulan';
+  priceBox.append(priceNominal, priceUnit);
   priceWrap.append(priceBox);
 
-  // 5. Tombol Pesan Sekarang & Lihat Detail (hover berubah coklat)
+  // 5. Tombol Pesan Sekarang & Lihat Detail (Lato, tinggi & radius seragam, transisi & active feedback)
   const btnRow = document.createElement('div');
-  btnRow.className = 'mt-3.5 flex flex-wrap gap-2.5';
+  btnRow.className = 'mt-2.5 flex flex-wrap gap-2';
+
+  const btnBaseCls =
+    'inline-flex h-9 cursor-pointer items-center justify-center rounded-lg border border-[var(--color-cream)] bg-[var(--color-cream)] px-4 font-[family-name:var(--font-body)] text-xs font-semibold leading-none tracking-[0.02em] text-[var(--color-primary)] shadow-xs transition-all duration-200 ease-out hover:border-[var(--color-cream)]/80 hover:bg-[var(--color-primary-dark)] hover:text-[var(--color-cream)] hover:shadow-sm active:scale-[0.97] active:bg-[#362013] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-cream)]/70';
 
   const btnPesan = document.createElement('a');
   btnPesan.href = `/pesan?tipe=${encodeURIComponent(tipe.key)}`;
-  btnPesan.className = 'rounded-lg border border-[var(--color-surface)] bg-[var(--color-surface)] px-4 py-1.5 text-xs font-semibold text-[var(--color-primary)] shadow-xs transition-colors hover:border-[var(--color-cream)]/70 hover:bg-[var(--color-primary-dark)] hover:text-[var(--color-cream)]';
+  btnPesan.className = btnBaseCls;
   btnPesan.textContent = 'Pesan Sekarang';
 
   const btnDetail = document.createElement('button');
   btnDetail.type = 'button';
-  btnDetail.className = 'cursor-pointer rounded-lg border border-[var(--color-surface)] bg-[var(--color-surface)] px-4 py-1.5 text-xs font-semibold text-[var(--color-primary)] shadow-xs transition-colors hover:border-[var(--color-cream)]/70 hover:bg-[var(--color-primary-dark)] hover:text-[var(--color-cream)]';
+  btnDetail.className = btnBaseCls;
   btnDetail.textContent = 'Lihat Detail';
   btnDetail.addEventListener('click', () => bukaDetail(tipe));
 
   btnRow.append(btnPesan, btnDetail);
   topContent.append(pill, title, desc, priceWrap, btnRow);
 
-  // 6. Pill Fasilitas di bagian bawah kartu (dengan ikon dari /public/icons)
+  // 6. Amenity Pills di bagian bawah kartu (seragam tinggi, padding, ikon sejajar vertikal)
   const fasRow = document.createElement('div');
-  fasRow.className = 'mt-3 flex flex-wrap gap-1.5';
+  fasRow.className = 'mt-3 flex flex-wrap gap-1.5 border-t border-[var(--color-cream)]/15 pt-2.5';
   tipe.fasilitas.slice(0, 5).forEach((f) => {
     const chip = document.createElement('span');
-    chip.className = 'inline-flex items-center gap-1.5 rounded-full bg-[var(--color-surface)] px-3 py-0.5 text-[11px] font-medium text-[var(--color-ink)] shadow-2xs';
-    chip.append(buatElemenIkonFasilitas(f, 'h-3.5 w-3.5'));
+    chip.className = 'group inline-flex h-7 items-center gap-1.5 rounded-full bg-[var(--color-cream)] px-3 font-[family-name:var(--font-body)] text-[11px] font-medium leading-none tracking-[0.015em] text-[var(--color-primary)] ring-1 ring-inset ring-[var(--color-cream)] shadow-2xs transition-colors duration-200 hover:bg-[var(--color-primary-dark)] hover:text-[var(--color-cream)] hover:ring-[var(--color-cream)]/70';
+    chip.append(buatElemenIkonFasilitas(f, 'h-3.5 w-3.5 transition-[filter] duration-200 group-hover:brightness-0 group-hover:invert'));
     const txt = document.createElement('span');
+    txt.className = 'leading-none';
     txt.textContent = f;
     chip.append(txt);
     fasRow.append(chip);
@@ -248,7 +261,7 @@ function getStepWidth() {
 
 function setTrackOffset(idx, animate = true) {
   const track = $('kamar-track');
-  track.style.transition = animate ? 'transform 450ms cubic-bezier(0.22, 1, 0.36, 1)' : 'none';
+  track.style.transition = animate ? 'transform 550ms cubic-bezier(0.25, 1, 0.5, 1)' : 'none';
   const offset = idx * getStepWidth();
   track.style.transform = `translate3d(-${offset}px, 0, 0)`;
 }
@@ -260,6 +273,7 @@ function renderDots() {
   daftarTipe.forEach((tipe, i) => {
     const btn = document.createElement('button');
     btn.type = 'button';
+    btn.setAttribute('role', 'tab');
     btn.textContent = tipe.nama;
     btn.addEventListener('click', () => {
       if (isAnimating) return;
@@ -275,9 +289,10 @@ function updateActiveDot() {
   const realIdx = ((slideIdx % daftarTipe.length) + daftarTipe.length) % daftarTipe.length;
   $('slider-dots').querySelectorAll('button').forEach((btn, i) => {
     const aktif = i === realIdx;
+    btn.setAttribute('aria-selected', aktif ? 'true' : 'false');
     btn.className = aktif
-      ? 'cursor-pointer rounded-full bg-[var(--color-primary)] px-4 py-1 text-xs font-semibold text-[var(--color-cream)] shadow-xs transition-all'
-      : 'cursor-pointer rounded-full bg-[var(--color-primary)]/15 px-4 py-1 text-xs font-medium text-[var(--color-primary)] transition-all hover:bg-[var(--color-primary)]/25';
+      ? 'inline-flex h-8 cursor-pointer items-center justify-center rounded-full bg-[var(--color-primary)] px-5 font-[family-name:var(--font-body)] text-xs font-semibold leading-none tracking-[0.025em] text-[var(--color-cream)] shadow-sm transition-all duration-200 ease-out active:scale-[0.97]'
+      : 'inline-flex h-8 cursor-pointer items-center justify-center rounded-full bg-transparent px-5 font-[family-name:var(--font-body)] text-xs font-medium leading-none tracking-[0.025em] text-[var(--color-primary)]/75 transition-all duration-200 ease-out hover:bg-[var(--color-cream)] hover:text-[var(--color-primary)] active:scale-[0.97]';
   });
 }
 
@@ -298,7 +313,7 @@ function geserKanan() {
   setTrackOffset(slideIdx, true);
   updateActiveDot();
   clearTimeout(animTimer);
-  animTimer = setTimeout(selesaiAnimasi, 500);
+  animTimer = setTimeout(selesaiAnimasi, 600);
 }
 
 function geserKiri() {
@@ -313,7 +328,7 @@ function geserKiri() {
   setTrackOffset(slideIdx, true);
   updateActiveDot();
   clearTimeout(animTimer);
-  animTimer = setTimeout(selesaiAnimasi, 500);
+  animTimer = setTimeout(selesaiAnimasi, 600);
 }
 
 $('kamar-track').addEventListener('transitionend', (e) => {
@@ -367,7 +382,7 @@ function buatElemenIkonFasilitas(nama, sizeCls = 'h-5 w-5') {
     return img;
   }
   const wrap = document.createElement('span');
-  wrap.className = `${sizeCls} inline-flex shrink-0 items-center justify-center text-[var(--color-primary)]`;
+  wrap.className = `${sizeCls} inline-flex shrink-0 items-center justify-center text-current`;
   wrap.setAttribute('aria-hidden', 'true');
   wrap.innerHTML = '<svg class="h-full w-full" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>';
   return wrap;
@@ -428,21 +443,21 @@ function bukaDetail(tipe) {
     ? `${tipe.jumlahTersedia} Kamar Tersedia`
     : 'Penuh Saat Ini';
   $('dlg-badge').className = tipe.jumlahTersedia > 0
-    ? 'rounded-full bg-green-100 px-3 py-0.5 text-xs font-semibold text-green-800'
-    : 'rounded-full bg-red-100 px-3 py-0.5 text-xs font-semibold text-red-700';
+    ? 'inline-flex h-7 items-center rounded-full bg-green-100 px-3 font-[family-name:var(--font-body)] text-[11px] font-semibold leading-none tracking-[0.015em] text-green-900'
+    : 'inline-flex h-7 items-center rounded-full bg-red-100 px-3 font-[family-name:var(--font-body)] text-[11px] font-semibold leading-none tracking-[0.015em] text-red-800';
 
   $('dlg-galeri-label').textContent = `Foto ${tipe.label}`;
-  $('dlg-harga').textContent = formatRupiah(tipe.harga);
+  $('dlg-harga').textContent = formatHargaKartu(tipe.harga);
 
   const btnPesan = $('dlg-btn-pesan');
   btnPesan.href = `/pesan?tipe=${encodeURIComponent(tipe.key)}`;
   if (tipe.jumlahTersedia > 0) {
     btnPesan.textContent = 'Pesan Kamar Ini';
-    btnPesan.className = 'mt-3 block w-full rounded-xl bg-[var(--color-primary)] px-5 py-2.5 text-center text-sm font-semibold text-[var(--color-cream)] shadow-sm transition-colors hover:bg-[var(--color-primary-dark)]';
+    btnPesan.className = 'mt-3 flex h-11 w-full items-center justify-center rounded-xl bg-[var(--color-primary)] px-5 font-[family-name:var(--font-body)] text-sm font-semibold tracking-[0.02em] text-[var(--color-cream)] shadow-sm transition-all duration-200 hover:bg-[var(--color-primary-dark)] active:scale-[0.99]';
     btnPesan.removeAttribute('aria-disabled');
   } else {
     btnPesan.textContent = 'Lihat Ketersediaan / Ajukan Booking';
-    btnPesan.className = 'mt-3 block w-full rounded-xl bg-[var(--color-primary)]/80 px-5 py-2.5 text-center text-sm font-semibold text-[var(--color-cream)] shadow-sm transition-colors hover:bg-[var(--color-primary-dark)]';
+    btnPesan.className = 'mt-3 flex h-11 w-full items-center justify-center rounded-xl bg-[var(--color-primary)]/80 px-5 font-[family-name:var(--font-body)] text-sm font-semibold tracking-[0.02em] text-[var(--color-cream)] shadow-sm transition-all duration-200 hover:bg-[var(--color-primary-dark)] active:scale-[0.99]';
   }
 
   // Siapkan galeri foto (semua URL foto dari backend, atau fallback 1 foto halaman)

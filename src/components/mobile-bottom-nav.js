@@ -10,10 +10,11 @@ const variants = {
 };
 
 export const landingNavItems = [
-  { id: 'beranda', label: 'Beranda', icon: 'home', href: '#beranda' },
-  { id: 'kamar', label: 'Kamar', icon: 'rooms', href: 'kamar' },
-  { id: 'fasilitas', label: 'Fasilitas', icon: 'facilities', href: 'fasilitas' },
-  { id: 'akun', label: 'Akun', icon: 'account', href: 'auth/login' },
+  { id: 'beranda', label: 'Beranda', icon: 'home', href: '/' },
+  { id: 'kamar', label: 'Kamar', icon: 'rooms', href: '/kamar' },
+  { id: 'pesan', label: 'Pesan', icon: 'order', href: '/pesan' },
+  { id: 'fasilitas', label: 'Fasilitas', icon: 'facilities', href: '/fasilitas' },
+  { id: 'akun', label: 'Akun', icon: 'account', href: '/auth/login' },
 ];
 
 function renderNav({ items, variant, variantName }) {

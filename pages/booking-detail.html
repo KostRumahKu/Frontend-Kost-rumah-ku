@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Detail &amp; Pembayaran Pesanan | KostRumahKu</title>
+  <meta name="description" content="Pantau status pemesanan kamar KostRumahKu dan unggah bukti pembayaran." />
+  <link rel="icon" href="/public/favicon.ico" />
+  <link rel="stylesheet" href="/src/css/style.css" />
+  <link rel="stylesheet" href="/src/css/mobile-bottom-nav.css" />
+</head>
+
+<body class="min-h-dvh bg-[var(--color-cream)] font-[family-name:var(--font-body)] text-[var(--color-ink)]">
+
+  <!-- Navbar desktop -->
+  <header id="top-nav" class="sticky top-0 z-30 hidden shadow-sm md:block"></header>
+
+  <!-- Header mobile -->
+  <header class="flex items-center justify-between bg-[var(--color-primary)] px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] text-[var(--color-cream)] md:hidden">
+    <a href="/" class="flex items-center gap-2 font-[family-name:var(--font-heading)] text-base font-semibold tracking-[0.04em]">
+      <svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3 2 12h3v8h5v-5h4v5h5v-8h3L12 3Z" /></svg>
+      KostRumahKu
+    </a>
+  </header>
+
+  <main class="mx-auto max-w-5xl px-4 py-8 pb-28 md:px-8 md:py-10 md:pb-16">
+    <!-- Header halaman -->
+    <div>
+      <p class="text-xs font-semibold uppercase tracking-widest text-[var(--color-accent)]">Status Pemesanan</p>
+      <h1 class="mt-1 font-[family-name:var(--font-heading)] text-3xl font-semibold text-[var(--color-primary)]">Detail &amp; Pembayaran Pesanan</h1>
+      <p class="mt-1 text-sm text-[var(--color-muted)]">Simpan halaman ini atau gunakan tautan dari email untuk memantau validasi admin.</p>
+    </div>
+
+    <p id="page-error" role="alert" class="mt-5 hidden rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800"></p>
+    <p id="page-success" role="status" class="mt-5 hidden rounded-xl bg-green-50 px-4 py-3 text-sm text-green-800"></p>
+
+    <!-- Skeleton -->
+    <div id="booking-skeleton" class="mt-6 animate-pulse space-y-5">
+      <div class="h-24 rounded-2xl bg-[var(--color-surface)] p-6 shadow-sm"></div>
+      <div class="grid gap-6 lg:grid-cols-12">
+        <div class="h-72 rounded-2xl bg-[var(--color-surface)] p-6 shadow-sm lg:col-span-5"></div>
+        <div class="h-72 rounded-2xl bg-[var(--color-surface)] p-6 shadow-sm lg:col-span-7"></div>
+      </div>
+    </div>
+
+    <!-- Konten Utama -->
+    <div id="booking-konten" class="mt-6 hidden space-y-6">
+
+      <!-- Banner Status Dinamis (Menunggu Bayar / Menunggu Validasi / Disetujui / Ditolak Kesempatan ke-2 / Batal) -->
+      <section id="status-banner" class="rounded-2xl border p-5 shadow-sm"></section>
+
+      <!-- Stepper Workflow -->
+      <ol id="workflow-steps" class="grid grid-cols-3 gap-2 rounded-2xl border border-[var(--color-primary)]/15 bg-[var(--color-surface)] p-4 text-xs shadow-sm sm:gap-4"></ol>
+
+      <div class="grid gap-6 lg:grid-cols-12 lg:items-start">
+
+        <!-- Kiri: Rincian Pemesanan -->
+        <section class="rounded-2xl border border-[var(--color-primary)]/15 bg-[var(--color-surface)] p-6 shadow-sm lg:col-span-5">
+          <div class="flex items-center justify-between gap-2 border-b border-[var(--color-primary)]/10 pb-3.5">
+            <h2 class="font-[family-name:var(--font-heading)] text-base font-semibold text-[var(--color-primary)]">Rincian Pesanan</h2>
+            <span id="detail-status-badge" class="rounded-full px-3 py-1 text-xs font-semibold">—</span>
+          </div>
+
+          <div class="mt-4 rounded-xl bg-[var(--color-cream)]/70 px-3.5 py-2.5 text-xs">
+            <div class="flex items-center justify-between gap-2">
+              <div class="min-w-0">
+                <p class="text-[var(--color-muted)]">ID Pemesanan</p>
+                <p id="detail-id" class="mt-0.5 truncate font-mono font-semibold text-[var(--color-primary)]">—</p>
+              </div>
+              <button id="btn-salin-id" type="button"
+                class="shrink-0 cursor-pointer rounded-md border border-[var(--color-primary)]/25 bg-white px-2.5 py-1 text-[11px] font-medium text-[var(--color-primary)] hover:bg-[var(--color-cream)]">
+                Salin
+              </button>
+            </div>
+            <p class="mt-2 border-t border-[var(--color-primary)]/10 pt-2 text-[11px] leading-relaxed text-[var(--color-muted)]">
+              Salin ID ini untuk mengecek status pesanan kapan saja melalui
+              <a href="/pesan" class="font-semibold text-[var(--color-primary)] underline underline-offset-2 hover:text-[var(--color-primary-dark)]">halaman Pesan</a>.
+            </p>
+          </div>
+
+          <dl id="detail-list" class="mt-4 space-y-2.5 text-sm"></dl>
+
+          <!-- Catatan Admin (jika ada) -->
+          <div id="catatan-admin-box" class="mt-4 hidden rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs text-amber-900">
+            <p class="font-semibold">Catatan dari Admin:</p>
+            <p id="catatan-admin-teks" class="mt-1 whitespace-pre-line"></p>
+          </div>
+
+          <!-- Bukti Pembayaran yang sudah pernah diunggah -->
+          <div id="bukti-terunggah-box" class="mt-4 hidden border-t border-[var(--color-primary)]/10 pt-4">
+            <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--color-muted)]">Bukti Pembayaran Terunggah</p>
+            <a id="bukti-terunggah-link" href="#" target="_blank" rel="noopener noreferrer" class="block">
+              <img id="bukti-terunggah-img" src="" alt="Bukti pembayaran" class="max-h-52 w-full rounded-xl border border-black/10 bg-white object-contain" />
+            </a>
+          </div>
+        </section>
+
+        <!-- Kanan: Panel Pembayaran / Aksi Sesuai Status -->
+        <section class="lg:col-span-7">
+
+          <!-- Form Upload Bukti Pembayaran (tampil saat belum bayar ATAU ditolak kesempatan ke-2) -->
+          <form id="form-upload-bukti" class="hidden space-y-5 rounded-2xl border border-[var(--color-primary)]/15 bg-[var(--color-surface)] p-6 shadow-sm" novalidate>
+            <div class="border-b border-[var(--color-primary)]/10 pb-3.5">
+              <h2 id="upload-judul" class="font-[family-name:var(--font-heading)] text-lg font-semibold text-[var(--color-primary)]">Pembayaran &amp; Unggah Bukti</h2>
+              <p id="upload-sub" class="mt-0.5 text-xs text-[var(--color-muted)]">Transfer sesuai total tagihan ke salah satu rekening resmi berikut, lalu kirim URL foto bukti pembayaran.</p>
+            </div>
+
+            <p id="upload-error" role="alert" class="hidden rounded-lg bg-red-50 px-4 py-2.5 text-sm text-red-800"></p>
+
+            <!-- Daftar Rekening -->
+            <div>
+              <p class="mb-2 text-sm font-medium">1. Pilih Rekening Tujuan <span class="text-red-600">*</span></p>
+              <div id="daftar-rekening" class="grid gap-3 sm:grid-cols-2">
+                <p class="text-xs text-[var(--color-muted)]">Memuat rekening resmi...</p>
+              </div>
+            </div>
+
+            <!-- Input URL Bukti Pembayaran -->
+            <div>
+              <label for="bukti-url" class="mb-1.5 block text-sm font-medium">2. URL Foto Bukti Pembayaran <span class="text-red-600">*</span></label>
+              <input id="bukti-url" type="url" required placeholder="https://..."
+                class="w-full rounded-lg border border-[var(--color-primary)]/30 bg-[var(--color-cream)]/50 px-4 py-2.5 text-sm focus:border-[var(--color-primary)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/40" />
+              <p class="mt-1 text-xs text-[var(--color-muted)]">Masukkan tautan gambar bukti transfer (format http:// atau https://).</p>
+
+              <div id="preview-wrap" class="mt-3 hidden">
+                <p class="mb-1 text-xs font-medium text-[var(--color-muted)]">Pratinjau Bukti Pembayaran:</p>
+                <img id="preview-img" src="" alt="Pratinjau bukti bayar" class="max-h-56 rounded-xl border border-black/10 bg-white object-contain" />
+              </div>
+            </div>
+
+            <div class="flex justify-end border-t border-[var(--color-primary)]/10 pt-4">
+              <button id="btn-kirim-bukti" type="submit"
+                class="w-full cursor-pointer rounded-xl bg-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-[var(--color-cream)] shadow-sm transition-colors hover:bg-[var(--color-primary-dark)] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto">
+                Kirim Bukti Pembayaran
+              </button>
+            </div>
+          </form>
+
+          <!-- Panel Info Non-Form (saat Menunggu Validasi Admin / Disetujui / Dibatalkan) -->
+          <div id="panel-status-akhir" class="hidden rounded-2xl border border-[var(--color-primary)]/15 bg-[var(--color-surface)] p-6 shadow-sm"></div>
+
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <div id="bottom-nav" class="md:hidden"></div>
+
+  <script type="module">
+    try {
+      const r = await fetch('/config');
+      window.__ENV__ = await r.json();
+    } catch { window.__ENV__ = {}; }
+    await import('/src/pages/booking-detail.js');
+  </script>
+</body>
+</html>
